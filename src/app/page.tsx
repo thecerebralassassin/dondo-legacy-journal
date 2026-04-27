@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus, Activity, PieChart, User as UserIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 
 // Components
 import AuthPage from "@/components/AuthPage";
@@ -45,13 +45,12 @@ export default function Home() {
          </div>
          
          <div className="flex gap-2.5 items-center">
-            {/* Currency Toggle inside header */}
+            {/* Currency Toggle */}
             <div className="bg-white/5 rounded-full flex p-1 border border-white/10 ring-1 ring-white/5">
               <button onClick={() => setIsZar(false)} className={`${!isZar ? 'bg-[var(--dondo-emerald)] text-black shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'text-zinc-500 hover:text-white transition'} rounded-full px-4 py-1 text-[10px] tracking-widest font-black`}>USD</button>
               <button onClick={() => setIsZar(true)} className={`${isZar ? 'bg-[var(--dondo-emerald)] text-black shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'text-zinc-500 hover:text-white transition'} rounded-full px-4 py-1 text-[10px] tracking-widest font-black`}>ZAR</button>
             </div>
             
-            {/* Profile Dropdown / Sign Out */}
             <button 
               onClick={() => supabase.auth.signOut()} 
               className="w-10 h-10 rounded-full bg-[var(--dondo-emerald)] flex items-center justify-center text-black font-black text-sm transition-transform hover:scale-105 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
@@ -64,28 +63,25 @@ export default function Home() {
        {/* Tab Content */}
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 z-10 relative">
          {activeTab === "DASHBOARD" && <Dashboard setActiveTab={setActiveTab} />}
-         
          {activeTab === "TRADES" && <TradesView />}
-         
          {activeTab === "ANALYTICS" && <AnalyticsView />}
-         
          {activeTab === "PROFILE" && <ProfileView />}
-
          {activeTab === "HEATMAP_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
-         
          {activeTab === "MONTHLY_DETAILS" && <MonthlyDetailsView setActiveTab={setActiveTab} />}
        </div>
 
-       {/* Floating Action Buttons */}
-       <div className="fixed bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-3 z-40">
-         <button onClick={() => setIsTradeModalOpen(true)} className="bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-widest px-8 py-3.5 rounded-full flex items-center gap-2 shadow-[0_5px_30px_rgba(16,185,129,0.35)] hover:shadow-[0_5px_40px_rgba(16,185,129,0.5)] transition-all btn-tactile">
-           <Plus size={20} className="stroke-[3]" /> LOG TRADE
-         </button>
-         
-         <button onClick={() => setIsWithdrawalModalOpen(true)} className="bg-[#fbbf24] text-black font-black uppercase tracking-widest px-6 py-3.5 rounded-full flex items-center gap-2 shadow-[0_5px_30px_rgba(251,191,36,0.35)] hover:shadow-[0_5px_40px_rgba(251,191,36,0.5)] transition-all btn-tactile">
-           <span className="font-bold text-lg leading-none mt-0.5">$</span>
-         </button>
-       </div>
+       {/* Floating Action Buttons - ONLY visible on Dashboard and Trades */}
+       {(activeTab === "DASHBOARD" || activeTab === "TRADES") && (
+         <div className="fixed bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-3 z-40 animate-in fade-in zoom-in duration-300">
+           <button onClick={() => setIsTradeModalOpen(true)} className="bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-widest px-8 py-3.5 rounded-full flex items-center gap-2 shadow-[0_5px_30px_rgba(16,185,129,0.35)] hover:shadow-[0_5px_40px_rgba(16,185,129,0.5)] transition-all btn-tactile">
+             <Plus size={20} className="stroke-[3]" /> LOG TRADE
+           </button>
+           
+           <button onClick={() => setIsWithdrawalModalOpen(true)} className="bg-[#fbbf24] text-black font-black uppercase tracking-widest px-6 py-3.5 rounded-full flex items-center gap-2 shadow-[0_5px_30px_rgba(251,191,36,0.35)] hover:shadow-[0_5px_40px_rgba(251,191,36,0.5)] transition-all btn-tactile">
+             <span className="font-bold text-lg leading-none mt-0.5">$</span>
+           </button>
+         </div>
+       )}
 
        {/* Modals & Nav */}
        <LogTradeModal />

@@ -1,0 +1,17 @@
+{
+  "name": "Dondo Legacy Journal",
+  "short_name": "Dondo",
+  "description": "High-Performance Trading Matrix",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#10B981",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
