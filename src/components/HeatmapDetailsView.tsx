@@ -1,3 +1,5 @@
+"use client";
+
 import { useAppContext } from "@/context/AppContext";
 import Heatmap from "./Heatmap";
 import { format, isSameDay } from "date-fns";
@@ -6,7 +8,6 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
   const { trades, withdrawals, selectedHeatmapDate, isZar, usdZarRate } = useAppContext();
 
   // If a specific day is clicked, we filter the list below the heatmap.
-  // We use `selectedDateObj` to check.
   const selectedDateObj = selectedHeatmapDate ? new Date(selectedHeatmapDate) : null;
 
   // Calculate high level monthly stats for the mini grid
@@ -14,11 +15,9 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
   const lossDays = new Set();
   
   trades.forEach(t => {
-     const day = t.trade_date.split('T')[0];
-     // Naive assessment of day win/loss based on individual trades, 
-     // but ideally we'd aggregate daily PnL to decide if day was a win/loss.
-     if (t.status === 'win') winDays.add(day);
-     if (t.status === 'loss') lossDays.add(day);
+      const day = t.trade_date.split('T')[0];
+      if (t.status === 'win') winDays.add(day);
+      if (t.status === 'loss') lossDays.add(day);
   });
 
   // Filter trades and withdrawals for the selected day list
@@ -42,11 +41,11 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-6 px-1">
-         <div className="glass-panel p-4 ring-1 ring-[#065f46] bg-[#064e3b]/20 flex flex-col items-center justify-center border-none">
+         <div className="glass-panel p-4 ring-1 ring-[#065f46] bg-[#064e3b]/20 flex flex-col items-center justify-center border-none rounded-2xl">
             <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-1">Winning Days</div>
             <div className="text-xl font-black text-[var(--dondo-emerald)]">{winDays.size}</div>
          </div>
-         <div className="glass-panel p-4 ring-1 ring-[#7f1d1d] bg-[#450a0a]/20 flex flex-col items-center justify-center border-none">
+         <div className="glass-panel p-4 ring-1 ring-[#7f1d1d] bg-[#450a0a]/20 flex flex-col items-center justify-center border-none rounded-2xl">
             <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-1">Losing Days</div>
             <div className="text-xl font-black text-red-500">{lossDays.size}</div>
          </div>
@@ -80,16 +79,15 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
                   const amountStr = `${amountValue >= 0 ? '+' : '-'}${isZar ? 'R' : '$'}${Math.abs(amountValue).toFixed(2)}`;
 
                   return (
-                    <div key={trade.id} className="glass-panel p-4 ring-1 ring-white/5 border-none flex items-center justify-between bg-white/[0.02]">
+                    <div key={trade.id} className="glass-panel p-4 ring-1 ring-white/5 border-none flex items-center justify-between bg-white/[0.02] rounded-2xl">
                       <div className="flex gap-4 items-center">
                         <div className={`w-2 h-2 rounded-full ${trade.status === 'win' ? 'bg-[var(--dondo-emerald)] shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
                         <div>
                           <div className="font-black text-white text-sm tracking-wide">
-                            {trade.asset}
+                            {trade.asset} <span className="text-[10px] opacity-40 ml-1 font-normal">{trade.direction}</span>
                           </div>
                           <div className="text-[10px] text-zinc-500 flex gap-2 items-center mt-1.5 font-medium tracking-wide">
                             <span>{format(new Date(trade.trade_date), "HH:mm")}</span>
-                            {trade.session && <span className="text-indigo-400 font-bold uppercase">{trade.session}</span>}
                           </div>
                         </div>
                       </div>
@@ -105,7 +103,7 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
                  const amountValue = isZar ? w.amount * usdZarRate : w.amount;
                  const amountStr = `${isZar ? 'R' : '$'}${Math.abs(amountValue).toFixed(2)}`;
                  return (
-                    <div key={w.id} className="glass-panel p-4 ring-1 ring-[#fbbf24]/20 border border-[#fbbf24]/10 flex items-center justify-between bg-[#fbbf24]/5">
+                    <div key={w.id} className="glass-panel p-4 ring-1 ring-[#fbbf24]/20 border border-[#fbbf24]/10 flex items-center justify-between bg-[#fbbf24]/5 rounded-2xl">
                       <div className="flex gap-4 items-center">
                         <div className="w-2 h-2 rounded-full bg-[#fbbf24] shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div>
                         <div>

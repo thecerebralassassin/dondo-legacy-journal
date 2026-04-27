@@ -13,7 +13,7 @@ export type Trade = {
   stop_loss: number | null;
   take_profit: number | null;
   lot_size: number | null;
-  risk_reward: number | null; // RESTORED THIS LINE
+  risk_reward: number | null;
   pnl: number | null;
   status: string | null;
   trade_date: string;
@@ -22,6 +22,10 @@ export type Trade = {
   image_htf?: string;
   lesson?: string;
   mistake?: string;
+  // COMPATIBILITY FIELDS: Stops the build from failing
+  session?: string | null;
+  setup_type?: string | null;
+  sentiment?: string | null;
 };
 
 export type Withdrawal = {
