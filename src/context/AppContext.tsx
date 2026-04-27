@@ -8,11 +8,12 @@ export type Trade = {
   id: string;
   user_id: string;
   asset: string;
-  direction: string; // BUY or SELL
+  direction: string; 
   entry_price: number | null;
   stop_loss: number | null;
   take_profit: number | null;
   lot_size: number | null;
+  risk_reward: number | null; // RESTORED THIS LINE
   pnl: number | null;
   status: string | null;
   trade_date: string;
@@ -73,7 +74,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isZar, setIsZarState] = useState(true);
   const usdZarRate = 18.5;
 
-  // Data States - Initialized to 0/Empty to prevent "Money Glitches"
   const [trades, setTrades] = useState<Trade[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [startingBalance, setStartingBalance] = useState(0);
@@ -82,7 +82,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tradingGoal, setTradingGoal] = useState("");
   const [defaultLotSize, setDefaultLotSize] = useState(0.1);
 
-  // UI States
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
@@ -97,7 +96,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Auth Listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -107,9 +105,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      
-      // CRITICAL: If someone logs out, wipe the local memory immediately 
-      // so the next person doesn't see their data.
       if (!currentUser) {
         setTrades([]);
         setWithdrawals([]);
@@ -122,8 +117,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const fetchTrades = async () => {
     if (!user) return;
-    
-    // Explicitly filter by user_id for absolute privacy
     const { data, error } = await supabase
       .from('trades')
       .select('*')
@@ -132,7 +125,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (data && !error) setTrades(data as Trade[]);
 
-    // Fetch user profile specs
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
@@ -153,13 +145,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from('withdrawals')
       .select('*')
-      .eq('user_id', user.id) // Private filtering
+      .eq('user_id', user.id)
       .order('withdrawal_date', { ascending: false });
 
     if (data && !error) setWithdrawals(data as Withdrawal[]);
   };
 
-  // Trigger data fetch whenever the user changes
   useEffect(() => {
     if (user) {
       fetchTrades();
