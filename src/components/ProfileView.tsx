@@ -2,7 +2,7 @@
 
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
 
 export default function ProfileView() {
@@ -14,6 +14,21 @@ export default function ProfileView() {
   } = useAppContext();
   
   const [loading, setLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  // Fetch the actual names from the database
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user) return;
+      const { data, error } = await supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single();
+      if (data && !error) {
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+      }
+    };
+    fetchProfileData();
+  }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +37,8 @@ export default function ProfileView() {
     
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
+      first_name: firstName,
+      last_name: lastName,
       starting_balance: startingBalance,
       leverage,
       broker,
@@ -34,19 +51,16 @@ export default function ProfileView() {
     if (error) {
       alert(error.message);
     } else {
-      // Tactile feedback for the button
       const btn = document.getElementById("profile-save-btn");
       if (btn) btn.innerText = "✓ UPDATED";
-      setTimeout(() => { 
-        if (btn) btn.innerText = "UPDATE RESUME"; 
-      }, 2000);
+      setTimeout(() => { if (btn) btn.innerText = "UPDATE RESUME"; }, 2000);
     }
   };
 
   return (
     <div className="px-4 pb-24 w-full max-w-lg mx-auto relative animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      {/* Identity Header */}
+      {/* Dynamic Identity Header */}
       <div className="glass-panel p-6 ring-1 ring-white/5 border-none mb-6 relative overflow-hidden flex flex-col items-center gap-3">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--dondo-emerald)]/10 blur-[50px] pointer-events-none rounded-full" />
           
@@ -56,7 +70,9 @@ export default function ProfileView() {
             </div>
           </div>
           <div className="text-center relative z-10">
-            <h2 className="text-2xl font-black text-white tracking-tighter shadow-sm">Mr RC Dondo</h2>
+            <h2 className="text-2xl font-black text-white tracking-tighter shadow-sm capitalize">
+              {firstName || lastName ? `${firstName} ${lastName}` : "Trader"}
+            </h2>
             <p className="text-[10px] text-[var(--dondo-emerald)] font-bold uppercase tracking-widest">{user?.email}</p>
           </div>
       </div>
@@ -65,11 +81,28 @@ export default function ProfileView() {
 
         {/* Global Finance Config */}
         <div className="glass-panel p-5 ring-1 ring-white/5 border-none bg-white/[0.015]">
-            <h3 className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase mb-4 text-center">Account Specifications</h3>
+            <h3 className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase mb-4 text-center">Identity & Account Specs</h3>
             
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1 block">Starting Equity (ZAR)</label>
+                <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1 block">First Name</label>
+                <input 
+                  type="text" value={firstName} onChange={e => setFirstName(e.target.value)} 
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white font-bold outline-none focus:border-[var(--dondo-emerald)] transition capitalize" 
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1 block">Last Name</label>
+                <input 
+                  type="text" value={lastName} onChange={e => setLastName(e.target.value)} 
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white font-bold outline-none focus:border-[var(--dondo-emerald)] transition capitalize" 
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1 block">Starting Equity</label>
                 <input 
                   type="number" step="any" required 
                   value={startingBalance} onChange={e => setStartingBalance(Number(e.target.value))} 

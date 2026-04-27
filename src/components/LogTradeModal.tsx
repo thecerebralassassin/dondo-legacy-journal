@@ -1,31 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Calculator, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
 
 export default function LogTradeModal() {
   const { user, isTradeModalOpen, setIsTradeModalOpen, fetchTrades, isZar, usdZarRate, editingTrade, setEditingTrade } = useAppContext();
 
+  // Core Variables
   const [asset, setAsset] = useState("US30");
-  const [setupType, setSetupType] = useState("CONT");
-  const [session, setSession] = useState("NY OPEN");
+  const [direction, setDirection] = useState("BUY"); // NEW: Buy or Sell
+  const [status, setStatus] = useState("win");
+  const [tradeDate, setTradeDate] = useState(""); // Calendar Date
+  const [tradeTime, setTradeTime] = useState("");
+  
+  // Financial Coordinates
   const [entryPrice, setEntryPrice] = useState("");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
   const [lotSize, setLotSize] = useState("");
-  const [riskReward, setRiskReward] = useState<number | null>(null);
-  const [useAutoPnl, setUseAutoPnl] = useState(false);
   const [pnl, setPnl] = useState("");
-  const [status, setStatus] = useState("win");
-  const [sentiment, setSentiment] = useState("😌");
+  
+  // Review Variables
   const [lesson, setLesson] = useState("");
   const [mistake, setMistake] = useState("");
-  const [tradeDate, setTradeDate] = useState(""); 
-  const [tradeTime, setTradeTime] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Images
   const [ltfFile, setLtfFile] = useState<File | null>(null);
   const [ltfUrl, setLtfUrl] = useState("");
   const [mtfFile, setMtfFile] = useState<File | null>(null);
@@ -35,22 +37,24 @@ export default function LogTradeModal() {
 
   useEffect(() => {
     if (editingTrade) {
-      setAsset(editingTrade.asset);
-      setSetupType(editingTrade.setup_type || "");
-      setSession(editingTrade.session || "");
+      setAsset(editingTrade.asset || "");
+      setDirection(editingTrade.direction || "BUY");
+      setStatus(editingTrade.status || "win");
       setEntryPrice(editingTrade.entry_price?.toString() || "");
       setStopLoss(editingTrade.stop_loss?.toString() || "");
       setTakeProfit(editingTrade.take_profit?.toString() || "");
       setLotSize(editingTrade.lot_size?.toString() || "");
+      
       let basePnl = editingTrade.pnl || 0;
       if (isZar) basePnl = basePnl * usdZarRate;
       setPnl(basePnl.toFixed(2));
-      setStatus(editingTrade.status || "win");
-      setSentiment(editingTrade.sentiment || "😌");
+      
       setLesson(editingTrade.lesson || "");
       setMistake(editingTrade.mistake || "");
+      
       setTradeDate(editingTrade.trade_date.split('T')[0]);
       setTradeTime(new Date(editingTrade.trade_date).toISOString().substring(11, 16));
+      
       setLtfUrl(editingTrade.image_ltf || "");
       setMtfUrl(editingTrade.image_mtf || "");
       setHtfUrl(editingTrade.image_htf || "");
@@ -60,13 +64,6 @@ export default function LogTradeModal() {
       setTradeTime(new Date().toISOString().substring(11, 16));
     }
   }, [editingTrade, isTradeModalOpen]);
-
-  useEffect(() => {
-    const entry = parseFloat(entryPrice), sl = parseFloat(stopLoss), tp = parseFloat(takeProfit);
-    if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp) && entry !== sl) {
-      setRiskReward(parseFloat((Math.abs(tp - entry) / Math.abs(entry - sl)).toFixed(2)));
-    } else setRiskReward(null);
-  }, [entryPrice, stopLoss, takeProfit]);
 
   const uploadImageObj = async (file: File) => {
     const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
@@ -80,9 +77,11 @@ export default function LogTradeModal() {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
+    
     let finalPnl = pnl ? parseFloat(pnl) : null;
     if (finalPnl !== null && isZar) finalPnl = finalPnl / usdZarRate;
     if (finalPnl !== null && status === 'loss') finalPnl = -Math.abs(finalPnl);
+    
     const isoDate = new Date(`${tradeDate}T${tradeTime || '00:00'}:00`).toISOString();
 
     let insertLtf = ltfUrl, insertMtf = mtfUrl, insertHtf = htfUrl;
@@ -91,11 +90,21 @@ export default function LogTradeModal() {
     if (htfFile) insertHtf = await uploadImageObj(htfFile) || "";
 
     const tradeData = {
-      user_id: user.id, asset, setup_type: setupType, session,
-      entry_price: parseFloat(entryPrice), stop_loss: parseFloat(stopLoss),
-      take_profit: parseFloat(takeProfit), lot_size: parseFloat(lotSize),
-      risk_reward: riskReward, pnl: finalPnl, status, sentiment, lesson, mistake,
-      trade_date: isoDate, image_ltf: insertLtf, image_mtf: insertMtf, image_htf: insertHtf
+      user_id: user.id, 
+      asset, 
+      direction, 
+      entry_price: parseFloat(entryPrice), 
+      stop_loss: parseFloat(stopLoss),
+      take_profit: parseFloat(takeProfit), 
+      lot_size: parseFloat(lotSize),
+      pnl: finalPnl, 
+      status, 
+      lesson, 
+      mistake,
+      trade_date: isoDate, 
+      image_ltf: insertLtf, 
+      image_mtf: insertMtf, 
+      image_htf: insertHtf
     };
 
     const { error } = editingTrade 
@@ -143,29 +152,62 @@ export default function LogTradeModal() {
 
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-40">
           <form id="main-trade-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
+            
+            {/* Asset & Buy/Sell Row */}
             <div className="grid grid-cols-2 gap-4">
                <div className="flex flex-col gap-2">
                   <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Asset</label>
                   <input type="text" value={asset} onChange={e => setAsset(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[var(--dondo-emerald)]" required />
                </div>
                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Direction</label>
+                  <div className="flex gap-2 h-[56px]">
+                    <button type="button" onClick={() => setDirection('BUY')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${direction === 'BUY' ? 'bg-blue-500 text-black' : 'bg-white/5 text-zinc-500'}`}>Buy</button>
+                    <button type="button" onClick={() => setDirection('SELL')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${direction === 'SELL' ? 'bg-orange-500 text-black' : 'bg-white/5 text-zinc-500'}`}>Sell</button>
+                  </div>
+               </div>
+            </div>
+
+            {/* Result & Calendar Date Row */}
+            <div className="grid grid-cols-2 gap-4">
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Calendar Date</label>
+                  <input type="date" value={tradeDate} onChange={e => setTradeDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none [color-scheme:dark]" required />
+               </div>
+               <div className="flex flex-col gap-2">
                   <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Result</label>
-                  <div className="flex gap-2 h-full">
+                  <div className="flex gap-2 h-[56px]">
                     <button type="button" onClick={() => setStatus('win')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${status === 'win' ? 'bg-[var(--dondo-emerald)] text-black' : 'bg-white/5 text-zinc-500'}`}>Win</button>
                     <button type="button" onClick={() => setStatus('loss')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${status === 'loss' ? 'bg-red-500 text-black' : 'bg-white/5 text-zinc-500'}`}>Loss</button>
                   </div>
                </div>
             </div>
 
+            {/* Images */}
             <div className="grid grid-cols-3 gap-3">
               <ImageUploader label="LTF" url={ltfUrl} setUrl={setLtfUrl} setFile={setLtfFile} />
               <ImageUploader label="MTF" url={mtfUrl} setUrl={setMtfUrl} setFile={setMtfFile} />
               <ImageUploader label="HTF" url={htfUrl} setUrl={setHtfUrl} setFile={setHtfFile} />
             </div>
 
+            {/* Entry, SL, TP, Lot Size */}
             <div className="grid grid-cols-2 gap-4">
-               <input type="number" step="any" placeholder="Entry" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
-               <input type="number" step="any" placeholder="Lot Size" value={lotSize} onChange={e => setLotSize(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
+               <div className="flex flex-col gap-1">
+                 <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Entry Price</label>
+                 <input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
+               </div>
+               <div className="flex flex-col gap-1">
+                 <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Lot Size</label>
+                 <input type="number" step="any" value={lotSize} onChange={e => setLotSize(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
+               </div>
+               <div className="flex flex-col gap-1">
+                 <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Stop Loss (SL)</label>
+                 <input type="number" step="any" value={stopLoss} onChange={e => setStopLoss(e.target.value)} className="bg-white/5 border border-red-500/30 rounded-xl p-4 text-red-400 outline-none" required />
+               </div>
+               <div className="flex flex-col gap-1">
+                 <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Take Profit (TP)</label>
+                 <input type="number" step="any" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} className="bg-white/5 border border-[var(--dondo-emerald)]/30 rounded-xl p-4 text-[var(--dondo-emerald)] outline-none" required />
+               </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -174,8 +216,8 @@ export default function LogTradeModal() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <textarea placeholder="Lessons Learned" value={lesson} onChange={e => setLesson(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none" />
-               <textarea placeholder="Mistakes Made" value={mistake} onChange={e => setMistake(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none" />
+               <textarea placeholder="Lessons Learned" value={lesson} onChange={e => setLesson(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none outline-none focus:border-[var(--dondo-emerald)] transition" />
+               <textarea placeholder="Mistakes Made" value={mistake} onChange={e => setMistake(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none outline-none focus:border-red-500 transition" />
             </div>
           </form>
         </div>

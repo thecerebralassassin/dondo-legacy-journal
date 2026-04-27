@@ -24,10 +24,13 @@ export default function Home() {
 
   return (
     <div className="pb-36 bg-black min-h-screen w-full relative">
+       {/* RESTORED TEXT HEADER */}
        <header className="flex justify-between items-center p-5 pt-8">
          <div className="flex flex-col">
-            <img src="/icon.png" className="w-8 h-8 mb-2" alt="Logo" />
-            <div className="text-2xl font-black text-white tracking-tighter">Dondo<span className="text-[var(--dondo-emerald)]">.</span></div>
+            <div className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">Trading Journal</div>
+            <div className="text-2xl font-black text-white tracking-tighter leading-none">
+              Dondo<span className="text-[var(--dondo-emerald)]">.</span>
+            </div>
          </div>
          <div className="flex gap-2.5 items-center">
             <div className="bg-white/5 rounded-full flex p-1 border border-white/10">
@@ -38,7 +41,7 @@ export default function Home() {
          </div>
        </header>
 
-       {/* ACTION BUTTONS: Now embedded at the top of Dashboard for visibility */}
+       {/* Top Dashboard Action Buttons */}
        {activeTab === "DASHBOARD" && (
          <div className="px-5 mb-8 flex gap-3">
             <button onClick={() => setIsTradeModalOpen(true)} className="flex-1 py-4 bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 text-xs shadow-[0_10px_20px_rgba(16,185,129,0.2)]">
