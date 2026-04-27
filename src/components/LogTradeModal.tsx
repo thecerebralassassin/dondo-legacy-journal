@@ -83,7 +83,6 @@ export default function LogTradeModal() {
     let finalPnl = pnl ? parseFloat(pnl) : null;
     if (finalPnl !== null && isZar) finalPnl = finalPnl / usdZarRate;
     if (finalPnl !== null && status === 'loss') finalPnl = -Math.abs(finalPnl);
-
     const isoDate = new Date(`${tradeDate}T${tradeTime || '00:00'}:00`).toISOString();
 
     let insertLtf = ltfUrl, insertMtf = mtfUrl, insertHtf = htfUrl;
@@ -113,62 +112,79 @@ export default function LogTradeModal() {
     setEditingTrade(null);
   };
 
+  const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
+    const handleFileChange = (e: any) => {
+      if (e.target.files && e.target.files[0]) {
+        setFile(e.target.files[0]);
+        setUrl(URL.createObjectURL(e.target.files[0]));
+      }
+    };
+    return (
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{label}</label>
+        <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden">
+          {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
+          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+        </label>
+      </div>
+    );
+  };
+
   if (!isTradeModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md">
-      <div className="w-full max-w-lg bg-[#050505] rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-white/10 flex flex-col max-h-[90vh] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-500">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-md">
+      <div className="w-full max-w-lg bg-[#050505] rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-white/10 flex flex-col max-h-[92vh] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-500">
         
-        {/* Header */}
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/50">
-          <h2 className="text-white font-black tracking-widest uppercase text-sm">Log in trade details</h2>
-          <button onClick={handleClose} className="p-2 bg-white/5 rounded-full text-zinc-400 hover:text-white transition"><X size={20} /></button>
+          <h2 className="text-white font-black tracking-widest uppercase text-xs">Log in trade details</h2>
+          <button onClick={handleClose} className="p-2 bg-white/5 rounded-full text-zinc-400"><X size={20} /></button>
         </div>
 
-        {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-40">
           <form id="main-trade-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
-            {/* Input Grid */}
             <div className="grid grid-cols-2 gap-4">
                <div className="flex flex-col gap-2">
                   <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Asset</label>
-                  <input type="text" value={asset} onChange={e => setAsset(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none" required />
+                  <input type="text" value={asset} onChange={e => setAsset(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[var(--dondo-emerald)]" required />
                </div>
                <div className="flex flex-col gap-2">
                   <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Result</label>
                   <div className="flex gap-2 h-full">
-                    <button type="button" onClick={() => setStatus('win')} className={`flex-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${status === 'win' ? 'bg-[var(--dondo-emerald)] text-black' : 'bg-white/5 text-zinc-500'}`}>Win</button>
-                    <button type="button" onClick={() => setStatus('loss')} className={`flex-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${status === 'loss' ? 'bg-red-500 text-black' : 'bg-white/5 text-zinc-500'}`}>Loss</button>
+                    <button type="button" onClick={() => setStatus('win')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${status === 'win' ? 'bg-[var(--dondo-emerald)] text-black' : 'bg-white/5 text-zinc-500'}`}>Win</button>
+                    <button type="button" onClick={() => setStatus('loss')} className={`flex-1 rounded-xl text-[10px] font-black uppercase ${status === 'loss' ? 'bg-red-500 text-black' : 'bg-white/5 text-zinc-500'}`}>Loss</button>
                   </div>
                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <ImageUploader label="LTF" url={ltfUrl} setUrl={setLtfUrl} setFile={setLtfFile} />
+              <ImageUploader label="MTF" url={mtfUrl} setUrl={setMtfUrl} setFile={setMtfFile} />
+              <ImageUploader label="HTF" url={htfUrl} setUrl={setHtfUrl} setFile={setHtfFile} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                <input type="number" step="any" placeholder="Entry" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
                <input type="number" step="any" placeholder="Lot Size" value={lotSize} onChange={e => setLotSize(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none" required />
-               <input type="number" step="any" placeholder="Stop Loss" value={stopLoss} onChange={e => setStopLoss(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-red-500 outline-none" required />
-               <input type="number" step="any" placeholder="Take Profit" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-[var(--dondo-emerald)] outline-none" required />
             </div>
 
             <div className="flex flex-col gap-2">
-               <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Profit/Loss {isZar ? '(ZAR)' : '(USD)'}</label>
-               <input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} className="bg-white/5 border border-[var(--dondo-emerald)]/30 rounded-xl p-5 text-2xl font-black text-white outline-none" required />
+               <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Profit/Loss Made {isZar ? '(ZAR)' : '(USD)'}</label>
+               <input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} className="bg-black border border-[var(--dondo-emerald)]/40 rounded-xl p-5 text-3xl font-black text-white outline-none text-center" required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <textarea placeholder="Lessons Learned" value={lesson} onChange={e => setLesson(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none outline-none" />
-               <textarea placeholder="Mistakes Made" value={mistake} onChange={e => setMistake(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none outline-none" />
+               <textarea placeholder="Lessons Learned" value={lesson} onChange={e => setLesson(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none" />
+               <textarea placeholder="Mistakes Made" value={mistake} onChange={e => setMistake(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-24 resize-none" />
             </div>
           </form>
         </div>
 
-        {/* ABSOLUTE FIXED FOOTER FOR BUTTON */}
-        <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-[70]">
-          <button form="main-trade-form" type="submit" disabled={loading} className="w-full py-5 bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] active:scale-95 transition">
-            {loading ? "INITIALIZING SECURE SAVE..." : editingTrade ? "UPDATE SEQUENCE" : "COMMIT TO DATABASE"}
+        <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black to-transparent z-[70]">
+          <button form="main-trade-form" type="submit" disabled={loading} className="w-full py-5 bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition">
+            {loading ? "SAVING..." : "COMMIT TO DATABASE"}
           </button>
         </div>
-
       </div>
     </div>
   );
