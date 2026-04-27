@@ -17,12 +17,12 @@ export type Trade = {
   pnl: number | null;
   status: string | null;
   trade_date: string;
+  created_at?: string; // ADDED THIS - Likely the culprit
   image_ltf?: string;
   image_mtf?: string;
   image_htf?: string;
-  lesson?: string;
-  mistake?: string;
-  // COMPATIBILITY FIELDS: Stops the build from failing
+  lesson?: string | null;
+  mistake?: string | null;
   session?: string | null;
   setup_type?: string | null;
   sentiment?: string | null;
