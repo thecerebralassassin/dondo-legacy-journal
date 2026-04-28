@@ -12,6 +12,7 @@ import TradesView from "@/components/TradesView";
 import AnalyticsView from "@/components/AnalyticsView";
 import HeatmapDetailsView from "@/components/HeatmapDetailsView";
 import MonthlyDetailsView from "@/components/MonthlyDetailsView";
+import ViewTradeModal from "@/components/ViewTradeModal";
 
 export default function Home() {
   const { user, loadingAuth } = useAppContext();
@@ -54,6 +55,7 @@ export default function Home() {
        
        <LogTradeModal />
        <LogWithdrawalModal />
+       <ViewTradeModal />
        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );

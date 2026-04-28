@@ -80,7 +80,11 @@ export default function TradesView() {
               const trade = item as Trade;
               const displayPnl = isZar ? (trade.pnl || 0) * usdZarRate : (trade.pnl || 0);
               return (
-                <div key={trade.id} className="glass-panel p-5 ring-1 ring-white/5 border-none bg-white/[0.01] rounded-3xl group">
+                <div 
+                  key={trade.id} 
+                  onClick={() => (window as any).viewTrade?.(trade)}
+                  className="glass-panel p-5 ring-1 ring-white/5 border-none bg-white/[0.01] rounded-3xl group cursor-pointer hover:bg-white/[0.03] transition-all"
+                >
                    <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${trade.status === 'win' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -106,10 +110,10 @@ export default function TradesView() {
                          {trade.setup_type || 'Classic Setup'}
                       </div>
                       <div className="flex items-center gap-2">
-                         <button onClick={() => { setEditingTrade(trade); setIsTradeModalOpen(true); }} className="p-2 bg-white/5 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition">
+                         <button onClick={(e) => { e.stopPropagation(); setEditingTrade(trade); setIsTradeModalOpen(true); }} className="p-2 bg-white/5 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition">
                             <Edit2 size={14} />
                          </button>
-                         <button onClick={() => handleDeleteTrade(trade.id)} className="p-2 bg-white/5 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition">
+                         <button onClick={(e) => { e.stopPropagation(); handleDeleteTrade(trade.id); }} className="p-2 bg-white/5 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition">
                             <Trash2 size={14} />
                          </button>
                       </div>

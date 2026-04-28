@@ -175,6 +175,19 @@ export default function ProfileView() {
                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                               <ImageIcon className="text-white drop-shadow-lg" size={32} />
                            </div>
+                           <button 
+                             type="button" 
+                             onClick={async (e) => {
+                               e.stopPropagation();
+                               if (confirm("Remove goal image?")) {
+                                 setGoalsImage("");
+                                 await supabase.from('profiles').update({ goals_image: null }).eq('id', user.id);
+                               }
+                             }}
+                             className="absolute top-4 right-4 p-2 bg-red-500 rounded-xl text-white shadow-lg hover:bg-red-600 transition z-10"
+                           >
+                             <X size={16} />
+                           </button>
                         </>
                      ) : (
                         <>
