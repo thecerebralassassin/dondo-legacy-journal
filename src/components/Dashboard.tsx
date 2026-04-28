@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext, Trade } from "@/context/AppContext";
 import Heatmap from "./Heatmap";
 import RecentTrades from "./RecentTrades";
 import { PlusCircle, Wallet } from "lucide-react";
@@ -11,14 +11,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
     setIsTradeModalOpen, setIsWithdrawalModalOpen 
   } = useAppContext();
 
-  // FIX THE MATH: 
-  // We assume the 'startingBalance' entered in Profile is already in the target currency.
+  // Math Fix: Treat the starting balance as a raw number from the profile
   const baseBalance = Number(startingBalance) || 0;
   
-  // Calculate PnL: Convert trade PnL (stored in USD) to ZAR only if app is in ZAR mode
+  // Calculate PnL: All trades are stored as USD. Convert to ZAR only if app is in ZAR mode.
   const totalPnL = trades.reduce((acc, t) => {
-    const pnlVal = t.pnl || 0;
-    return acc + (isZar ? pnlVal * usdZarRate : pnlVal);
+    const val = t.pnl || 0;
+    return acc + (isZar ? val * usdZarRate : val);
   }, 0);
 
   const totalWithdrawn = withdrawals.reduce((acc, w) => {
@@ -27,17 +26,15 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
 
   const currentEquity = baseBalance + totalPnL - totalWithdrawn;
   const pctGrowth = baseBalance > 0 ? (totalPnL / baseBalance) * 100 : 0;
-
-  const winTrades = trades.filter(t => t.status === 'win');
-  const winRate = trades.length > 0 ? Math.round((winTrades.length / trades.length) * 100) : 0;
+  const winRate = trades.length > 0 ? Math.round((trades.filter(t => t.status === 'win').length / trades.length) * 100) : 0;
 
   return (
     <div className="flex flex-col gap-6 w-full relative animate-in fade-in duration-500">
       
-      {/* BRANDING & LOG BUTTONS */}
+      {/* BRANDING & LOG BUTTONS REINSTATED */}
       <div className="mx-4 mt-6 flex justify-between items-center">
         <div className="flex flex-col">
-           <h1 className="text-white font-black tracking-tighter text-2xl uppercase">Dondo Legacy</h1>
+           <h1 className="text-white font-black tracking-tighter text-2xl uppercase italic">Dondo Legacy</h1>
            <p className="text-[10px] text-[var(--dondo-emerald)] font-bold tracking-[0.3em] uppercase">God First †</p>
         </div>
         <div className="flex gap-2">
@@ -64,12 +61,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
         </div>
       </div>
 
-      {/* HEATMAP */}
       <div className="px-4">
-        <div className="flex justify-between items-center px-2 mb-4">
-           <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Activity Map</h3>
-           <button onClick={() => setActiveTab('MONTHLY_DETAILS')} className="text-[9px] text-[var(--dondo-emerald)] font-bold tracking-widest uppercase">Details</button>
-        </div>
         <Heatmap tradesData={trades} setActiveTab={setActiveTab} />
       </div>
 

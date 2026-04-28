@@ -22,6 +22,8 @@ export type Trade = {
   image_htf?: string;
   lesson?: string | null;
   mistake?: string | null;
+  session?: string | null;
+  setup_type?: string | null;
 };
 
 export type Withdrawal = {
