@@ -11,6 +11,7 @@ import ProfileView from "@/components/ProfileView";
 import TradesView from "@/components/TradesView";
 import AnalyticsView from "@/components/AnalyticsView";
 import HeatmapDetailsView from "@/components/HeatmapDetailsView";
+import MonthlyDetailsView from "@/components/MonthlyDetailsView";
 
 export default function Home() {
   const { user, loadingAuth } = useAppContext();
@@ -32,7 +33,8 @@ export default function Home() {
        {activeTab === "TRADES" && <TradesView />}
        {activeTab === "ANALYTICS" && <AnalyticsView />}
        {activeTab === "PROFILE" && <ProfileView />}
-       {activeTab === "MONTHLY_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
+       {activeTab === "MONTHLY_DETAILS" && <MonthlyDetailsView setActiveTab={setActiveTab} />}
+       {activeTab === "HEATMAP_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
        
        <LogTradeModal />
        <LogWithdrawalModal />

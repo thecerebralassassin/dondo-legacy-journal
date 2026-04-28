@@ -116,6 +116,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
           <div className="absolute bottom-0 left-0 w-full h-40">
             <EquityCurve trades={trades} startingBalance={startingBalance} isZar={isZar} usdZarRate={usdZarRate} />
           </div>
+
+          <button 
+            onClick={() => setActiveTab("MONTHLY_DETAILS")}
+            className="absolute top-8 right-8 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition group z-20"
+          >
+            Performance Report <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+          </button>
         </div>
 
         {/* Heatmap Section */}
