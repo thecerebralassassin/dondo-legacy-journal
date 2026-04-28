@@ -3,7 +3,7 @@
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useState, useRef } from "react";
-import { User, ShieldCheck, Target, Image as ImageIcon, CheckCircle2, AlertCircle, Coins } from "lucide-react";
+import { User, ShieldCheck, Target, Image as ImageIcon, CheckCircle2, AlertCircle, Coins, X } from "lucide-react";
 
 export default function ProfileView() {
   const { 
