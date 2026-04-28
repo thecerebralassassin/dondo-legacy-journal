@@ -33,7 +33,7 @@ export default function RecentTrades({ setActiveTab }: { setActiveTab: (t: strin
             return (
               <div 
                 key={trade.id} 
-                onClick={() => setEditingTrade(trade)}
+                onClick={() => setActiveTab("TRADES")}
                 className="glass-panel p-4 ring-1 ring-white/5 bg-white/[0.02] border-none rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer group hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-4">
