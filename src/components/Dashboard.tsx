@@ -30,59 +30,98 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
   const winRate = trades.length > 0 ? Math.round((trades.filter(t => t.status === 'win').length / trades.length) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-6 w-full relative animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 w-full relative animate-in fade-in duration-700">
       
-      {/* BRANDING SECTION */}
-      <div className="flex flex-col items-center mt-12 mb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 mb-2">Trading Journal</p>
-        <div className="relative w-48 h-48 rounded-full p-1 bg-gradient-to-b from-white/10 to-transparent">
-          <img 
-            src="/adam.jpg" 
-            alt="Adam" 
-            className="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl"
-          />
-        </div>
-        <h1 className="text-3xl font-black text-white tracking-tighter mt-6 flex items-center">
+      {/* HEADER SECTION: Branding on top left */}
+      <div className="px-6 pt-8 flex items-center gap-6">
+        <h1 className="text-3xl font-black text-white tracking-tighter flex items-center">
           DONDO<span className="text-[var(--dondo-emerald)] ml-0.5 text-4xl leading-none">.</span>
         </h1>
+        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 pt-1">Trading Journal</span>
       </div>
 
-      {/* LOG BUTTONS */}
-      <div className="mx-4 flex justify-center gap-4">
-         <button onClick={() => setIsWithdrawalModalOpen(true)} className="flex-1 py-4 bg-white/5 rounded-2xl text-[#fbbf24] font-black uppercase tracking-widest text-[10px] hover:bg-[#fbbf24]/10 transition border border-white/5 flex items-center justify-center gap-2">
-           <Wallet size={16} /> Payday
+      {/* HERO SECTION: Banner & Faith Quote */}
+      <div className="px-6 flex flex-col lg:flex-row items-center gap-8">
+        {/* Banner */}
+        <div className="w-full lg:w-2/3 h-56 rounded-2xl overflow-hidden border border-white/5 relative group shadow-2xl">
+          <img 
+            src="/adam.jpg" 
+            alt="The Creation of Adam" 
+            className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        </div>
+
+        {/* Faith Section */}
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 lg:pl-4">
+          <div className="relative">
+             {/* Custom Neon Cross */}
+             <svg width="40" height="60" viewBox="0 0 24 24" fill="none" className="drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]">
+               <path d="M12 2V22M7 9H17" stroke="var(--dondo-emerald)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+               <path d="M12 2V22M7 9H17" stroke="white" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+             </svg>
+          </div>
+          <div className="flex flex-col">
+            <p className="text-xl italic font-serif text-white tracking-tight leading-relaxed">
+              3 Months Hardwork
+            </p>
+            <p className="text-xl italic font-serif text-white tracking-tight">
+              God First
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ACTION BUTTONS */}
+      <div className="px-6 grid grid-cols-2 gap-4">
+         <button onClick={() => setIsWithdrawalModalOpen(true)} className="py-4 bg-[#fbbf24] rounded-xl text-black font-black uppercase tracking-[0.2em] text-[11px] shadow-[0_0_30px_rgba(251,191,36,0.2)] active:scale-95 transition-all btn-tactile">
+           PAYDAY
          </button>
-         <button onClick={() => setIsTradeModalOpen(true)} className="flex-1 py-4 bg-[var(--dondo-emerald)] rounded-2xl text-black font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2">
-           <PlusCircle size={16} /> Log Trade
+         <button onClick={() => setIsTradeModalOpen(true)} className="py-4 bg-[var(--dondo-emerald)] rounded-xl text-black font-black uppercase tracking-[0.2em] text-[11px] shadow-[0_0_30px_rgba(16,185,129,0.25)] active:scale-95 transition-all btn-tactile">
+           LOG TRADE
          </button>
       </div>
 
-      {/* EQUITY CARD */}
-      <div className="glass-panel mx-4 p-8 relative overflow-hidden bg-gradient-to-br from-white/[0.05] to-transparent rounded-[2.5rem] border border-white/5">
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="text-[10px] text-zinc-500 font-black tracking-[0.2em] uppercase mb-2">Total Equity Portfolio</div>
-            <div className="text-[3.2rem] font-black text-white tracking-tighter flex items-start gap-1">
-              <span className="text-xl text-zinc-600 mt-2">{isZar ? 'R' : '$'}</span>
-              {currentEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {/* DASHBOARD GRID */}
+      <div className="px-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Equity Card */}
+        <div className="lg:col-span-2 glass-panel p-8 relative overflow-hidden bg-gradient-to-br from-white/[0.05] to-transparent rounded-[2.5rem] border border-white/5 flex flex-col justify-between min-h-[280px]">
+          <div className="relative z-10">
+            <div className="flex justify-between items-start">
+               <div>
+                  <p className="text-[10px] text-[var(--dondo-emerald)] font-black tracking-[0.2em] uppercase mb-2">Total Equity Portfolio</p>
+                  <h2 className="text-5xl font-black text-white tracking-tighter flex items-start gap-1">
+                    <span className="text-xl text-zinc-600 mt-2">{isZar ? 'R' : '$'}</span>
+                    {currentEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h2>
+                  <div className="mt-2">
+                    <span className={`text-sm font-bold ${totalPnL >= 0 ? 'text-[var(--dondo-emerald)]' : 'text-red-500'}`}>
+                      {totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)} ({pctGrowth.toFixed(2)}%)
+                    </span>
+                  </div>
+               </div>
+               <div className="px-4 py-2 rounded-full text-[10px] font-black tracking-widest bg-white/5 border border-white/10 text-zinc-400">
+                 {winRate}% WIN RATE
+               </div>
+            </div>
+            
+            <div className="mt-4">
+              <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[8px] font-black text-zinc-500 tracking-[0.2em] uppercase">
+                {trades.length > 0 ? (trades.filter(t => t.status === 'win').length / trades.length * 100).toFixed(0) : 0}% WIN RATE
+              </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 items-end">
-             <div className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest border ${totalPnL >= 0 ? 'bg-[var(--dondo-emerald)]/10 border-[var(--dondo-emerald)]/20 text-[var(--dondo-emerald)]' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-               {totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)} ({pctGrowth.toFixed(2)}%)
-             </div>
-             <div className="px-4 py-2 rounded-full text-[10px] font-black tracking-widest bg-white/5 border border-white/10 text-zinc-400">
-               {winRate}% WIN RATE
-             </div>
+
+          {/* Equity Curve Integration */}
+          <div className="absolute bottom-0 left-0 w-full h-40">
+            <EquityCurve trades={trades} startingBalance={startingBalance} isZar={isZar} usdZarRate={usdZarRate} />
           </div>
         </div>
 
-        {/* Equity Curve Integration */}
-        <EquityCurve trades={trades} startingBalance={startingBalance} isZar={isZar} usdZarRate={usdZarRate} />
-      </div>
-
-      <div className="px-4">
-        <Heatmap tradesData={trades} setActiveTab={setActiveTab} />
+        {/* Heatmap Section */}
+        <div className="glass-panel p-2 rounded-[2.5rem] border border-white/5">
+           <Heatmap tradesData={trades} setActiveTab={setActiveTab} />
+        </div>
       </div>
 
       <RecentTrades setActiveTab={setActiveTab} />
