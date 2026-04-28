@@ -264,9 +264,10 @@ const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
         {url && (
           <button 
             onClick={handleRemove}
-            className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10"
+            type="button"
+            className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center justify-center transition-transform hover:scale-110 active:scale-90 z-20 border-2 border-black"
           >
-            <X size={10} strokeWidth={4} />
+            <X size={14} strokeWidth={4} />
           </button>
         )}
       </div>
