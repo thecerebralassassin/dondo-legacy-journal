@@ -48,6 +48,9 @@ type AppContextType = {
   fetchTrades: () => Promise<void>;
   fetchWithdrawals: () => Promise<void>;
   fetchProfile: () => Promise<void>;
+  loadingAuth: boolean;
+  selectedHeatmapDate: string | null;
+  setSelectedHeatmapDate: (val: string | null) => void;
   isTradeModalOpen: boolean;
   setIsTradeModalOpen: (val: boolean) => void;
   isWithdrawalModalOpen: boolean;
@@ -64,6 +67,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [isZar, setIsZarInternal] = useState(false);
@@ -74,6 +78,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
+  const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const usdZarRate = 18.5;
 
@@ -82,10 +87,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      setLoadingAuth(false);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      setLoadingAuth(false);
     });
 
     return () => {
@@ -160,7 +167,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{
       user, trades, withdrawals, isZar, setIsZar, usdZarRate, startingBalance, setStartingBalance,
       goalsText, setGoalsText, goalsImage, setGoalsImage,
-      fetchTrades, fetchWithdrawals, fetchProfile, isTradeModalOpen, setIsTradeModalOpen,
+      fetchTrades, fetchWithdrawals, fetchProfile, loadingAuth, 
+      selectedHeatmapDate, setSelectedHeatmapDate,
+      isTradeModalOpen, setIsTradeModalOpen,
       isWithdrawalModalOpen, setIsWithdrawalModalOpen,
       editingTrade, setEditingTrade, editingWithdrawal, setEditingWithdrawal,
       currentMonth, setCurrentMonth
