@@ -9,6 +9,7 @@ import LogTradeModal from "@/components/LogTradeModal";
 import LogWithdrawalModal from "@/components/LogWithdrawalModal";
 import ProfileView from "@/components/ProfileView";
 import TradesView from "@/components/TradesView";
+import AnalyticsView from "@/components/AnalyticsView";
 import HeatmapDetailsView from "@/components/HeatmapDetailsView";
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
     <div className="bg-black min-h-screen w-full relative pb-32 overflow-x-hidden">
        {activeTab === "DASHBOARD" && <Dashboard setActiveTab={setActiveTab} />}
        {activeTab === "TRADES" && <TradesView />}
+       {activeTab === "ANALYTICS" && <AnalyticsView />}
        {activeTab === "PROFILE" && <ProfileView />}
        {activeTab === "MONTHLY_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
        

@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useAppContext } from "@/context/AppContext";
 import { PieChart, Activity, TrendingUp, TrendingDown, Target, BrainCircuit, AlertTriangle, Scale } from "lucide-react";
 
@@ -39,8 +41,11 @@ export default function AnalyticsView() {
   // Best Trading Day Algorithmic Detection
   const dayStats: Record<string, number> = { "Sunday": 0, "Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0 };
   filteredTrades.forEach(t => {
-     const dayName = new Date(t.trade_date).toLocaleDateString('en-US', { weekday: 'long' });
-     if (dayStats[dayName] !== undefined) dayStats[dayName] += (t.pnl || 0);
+     const tradeDate = new Date(t.trade_date);
+     if (isValid(tradeDate)) {
+       const dayName = format(tradeDate, 'EEEE');
+       if (dayStats[dayName] !== undefined) dayStats[dayName] += (t.pnl || 0);
+     }
   });
   
   let bestDay = "N/A";

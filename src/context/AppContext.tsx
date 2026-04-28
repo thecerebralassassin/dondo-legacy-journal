@@ -41,8 +41,13 @@ type AppContextType = {
   usdZarRate: number;
   startingBalance: number;
   setStartingBalance: (val: number) => void;
+  goalsText: string;
+  setGoalsText: (val: string) => void;
+  goalsImage: string;
+  setGoalsImage: (val: string) => void;
   fetchTrades: () => Promise<void>;
   fetchWithdrawals: () => Promise<void>;
+  fetchProfile: () => Promise<void>;
   isTradeModalOpen: boolean;
   setIsTradeModalOpen: (val: boolean) => void;
   isWithdrawalModalOpen: boolean;
@@ -63,6 +68,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [isZar, setIsZarInternal] = useState(false);
   const [startingBalance, setStartingBalanceInternal] = useState(0);
+  const [goalsText, setGoalsTextInternal] = useState("");
+  const [goalsImage, setGoalsImageInternal] = useState("");
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
@@ -90,13 +97,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const { data, error } = await supabase
       .from('profiles')
-      .select('starting_balance, currency_pref')
+      .select('starting_balance, currency_pref, goals_text, goals_image')
       .eq('id', user.id)
       .single();
     
     if (data && !error) {
       setStartingBalanceInternal(data.starting_balance || 0);
       setIsZarInternal(data.currency_pref === 'ZAR');
+      setGoalsTextInternal(data.goals_text || "");
+      setGoalsImageInternal(data.goals_image || "");
     }
   }, [user]);
 
@@ -144,10 +153,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setGoalsText = (val: string) => setGoalsTextInternal(val);
+  const setGoalsImage = (val: string) => setGoalsImageInternal(val);
+
   return (
     <AppContext.Provider value={{
       user, trades, withdrawals, isZar, setIsZar, usdZarRate, startingBalance, setStartingBalance,
-      fetchTrades, fetchWithdrawals, isTradeModalOpen, setIsTradeModalOpen,
+      goalsText, setGoalsText, goalsImage, setGoalsImage,
+      fetchTrades, fetchWithdrawals, fetchProfile, isTradeModalOpen, setIsTradeModalOpen,
       isWithdrawalModalOpen, setIsWithdrawalModalOpen,
       editingTrade, setEditingTrade, editingWithdrawal, setEditingWithdrawal,
       currentMonth, setCurrentMonth

@@ -47,7 +47,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
           <img 
             src="/adam.jpg" 
             alt="The Creation of Adam" 
-            className="w-full h-full object-cover object-[50%_25%] scale-125 opacity-90 transition-transform duration-1000 group-hover:scale-[1.3]"
+            className="w-full h-full object-cover object-[50%_15%] scale-[1.7] opacity-90 transition-transform duration-1000 group-hover:scale-[1.8]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
