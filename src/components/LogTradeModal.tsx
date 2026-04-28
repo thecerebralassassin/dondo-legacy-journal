@@ -244,13 +244,32 @@ const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
       setUrl(URL.createObjectURL(e.target.files[0]));
     }
   };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFile(null);
+    setUrl("");
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{label}</label>
-      <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition hover:bg-white/[0.08]">
-        {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
-        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-      </label>
+      <div className="relative group">
+        <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition hover:bg-white/[0.08]">
+          {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
+          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+        </label>
+        
+        {url && (
+          <button 
+            onClick={handleRemove}
+            className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10"
+          >
+            <X size={10} strokeWidth={4} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
