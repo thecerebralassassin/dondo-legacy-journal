@@ -19,7 +19,7 @@ export default function ProfileView() {
     if (!user) return;
     setSaving(true);
     
-    const { error } = await supabase.from('profiles').upsert({
+    await supabase.from('profiles').upsert({
       id: user.id,
       starting_balance: startingBalance,
       leverage,
@@ -29,17 +29,15 @@ export default function ProfileView() {
     });
     
     setSaving(false);
-    if (!error) {
-      const btn = document.getElementById("save-btn");
-      if (btn) btn.innerText = "✓ UPDATED";
-      setTimeout(() => { if(btn) btn.innerText = "UPDATE RESUME"; }, 2000);
-    }
+    const btn = document.getElementById("save-btn");
+    if (btn) btn.innerText = "✓ UPDATED";
+    setTimeout(() => { if(btn) btn.innerText = "UPDATE RESUME"; }, 2000);
   };
 
   return (
     <div className="px-4 pb-24 w-full max-w-lg mx-auto relative animate-in fade-in duration-500">
       
-      {/* Header: Fixed Name Display */}
+      {/* Header: Uses the firstName from Context */}
       <div className="glass-panel p-8 mb-8 flex flex-col items-center gap-4 bg-black/40 rounded-[2.5rem] border border-white/5">
           <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[var(--dondo-emerald)] to-[#065f46] p-1 relative">
             <div className="w-full h-full rounded-full bg-black flex items-center justify-center border-4 border-black overflow-hidden">
@@ -60,7 +58,7 @@ export default function ProfileView() {
 
       <form onSubmit={handleSave} className="flex flex-col gap-6">
         <div className="glass-panel p-6 bg-white/[0.01] rounded-3xl border border-white/5">
-            <h3 className="text-[10px] text-zinc-500 font-black tracking-[0.2em] uppercase mb-6 text-center">Account Specs</h3>
+            <h3 className="text-[10px] text-zinc-500 font-black tracking-[0.2em] uppercase mb-6 text-center">Account Setup</h3>
             
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col gap-2">
@@ -86,7 +84,7 @@ export default function ProfileView() {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest ml-1">Leverage</label>
-                <select value={leverage} onChange={e => setLeverage(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm font-bold outline-none appearance-none">
+                <select value={leverage} onChange={e => setLeverage(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm font-bold outline-none">
                    <option value="1:1">1:1</option>
                    <option value="1:500">1:500</option>
                    <option value="1:1000">1:1000</option>
