@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import AuthPage from "@/components/AuthPage";
 import Dashboard from "@/components/Dashboard";
@@ -15,9 +15,21 @@ import MonthlyDetailsView from "@/components/MonthlyDetailsView";
 
 export default function Home() {
   const { user, loadingAuth } = useAppContext();
-  const [activeTab, setActiveTab] = useState("DASHBOARD");
+  const [activeTab, setActiveTabInternal] = useState("DASHBOARD");
+  const [hydrated, setHydrated] = useState(false);
 
-  if (loadingAuth) {
+  useEffect(() => {
+    const saved = localStorage.getItem("dondo_active_tab");
+    if (saved) setActiveTabInternal(saved);
+    setHydrated(true);
+  }, []);
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabInternal(tab);
+    localStorage.setItem("dondo_active_tab", tab);
+  };
+
+  if (loadingAuth || !hydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="w-10 h-10 border-4 border-[var(--dondo-emerald)] border-t-transparent rounded-full animate-spin"></div>

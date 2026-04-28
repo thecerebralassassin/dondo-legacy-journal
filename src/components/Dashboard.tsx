@@ -119,7 +119,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
 
           <button 
             onClick={() => setActiveTab("MONTHLY_DETAILS")}
-            className="absolute top-8 right-8 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition group z-20"
+            className="absolute bottom-6 right-8 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition group z-20"
           >
             Performance Report <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
           </button>

@@ -3,13 +3,13 @@
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useState, useRef } from "react";
-import { User, ShieldCheck, Target, Image as ImageIcon, CheckCircle2, AlertCircle } from "lucide-react";
+import { User, ShieldCheck, Target, Image as ImageIcon, CheckCircle2, AlertCircle, Coins } from "lucide-react";
 
 export default function ProfileView() {
   const { 
     user, startingBalance, setStartingBalance, 
     goalsText, setGoalsText, goalsImage, setGoalsImage,
-    fetchProfile
+    fetchProfile, isZar, setIsZar
   } = useAppContext();
   
   const [saving, setSaving] = useState(false);
@@ -21,7 +21,8 @@ export default function ProfileView() {
     const file = e.target.files[0];
     
     // Show preview immediately
-    setGoalsImage(URL.createObjectURL(file));
+    const tempUrl = URL.createObjectURL(file);
+    setGoalsImage(tempUrl);
     
     setSaving(true);
     try {
@@ -35,11 +36,16 @@ export default function ProfileView() {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from('trade-images').getPublicUrl(fileName);
+      
+      // Save directly to profile so it doesn't disappear on refresh
+      await supabase.from('profiles').update({ goals_image: publicUrl }).eq('id', user.id);
       setGoalsImage(publicUrl);
+      setFeedback({ type: 'success', message: "Goal Image Saved!" });
     } catch (err: any) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
       setSaving(false);
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -54,7 +60,7 @@ export default function ProfileView() {
         id: user.id,
         starting_balance: startingBalance,
         goals_text: goalsText,
-        goals_image: goalsImage
+        currency_pref: isZar ? 'ZAR' : 'USD'
       });
 
       if (error) throw error;
@@ -97,19 +103,46 @@ export default function ProfileView() {
 
       <form onSubmit={handleSave} className="flex flex-col gap-6">
         
-        {/* Account Info */}
+        {/* Currency & Account Info */}
         <div className="glass-panel p-6 bg-white/[0.01] rounded-3xl border border-white/5">
-            <h3 className="text-[10px] text-zinc-500 font-black tracking-[0.2em] uppercase mb-6 text-center">Account Setup</h3>
+            <h3 className="text-[10px] text-zinc-500 font-black tracking-[0.2em] uppercase mb-6 text-center">System Configuration</h3>
             
-            <div className="flex flex-col gap-2">
-              <label className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest ml-1">Starting Equity</label>
-              <input 
-                type="number" step="any" required 
-                value={startingBalance || ""} 
-                onChange={e => setStartingBalance(Number(e.target.value))} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-black outline-none focus:border-[var(--dondo-emerald)]" 
-                placeholder="0.00"
-              />
+            <div className="flex flex-col gap-6">
+               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
+                        <Coins size={18} />
+                     </div>
+                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Display Currency</span>
+                  </div>
+                  <div className="flex bg-black p-1 rounded-xl border border-white/10">
+                     <button 
+                       type="button" 
+                       onClick={() => setIsZar(false)}
+                       className={`px-4 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition ${!isZar ? 'bg-[var(--dondo-emerald)] text-black' : 'text-zinc-600'}`}
+                     >
+                       USD
+                     </button>
+                     <button 
+                       type="button" 
+                       onClick={() => setIsZar(true)}
+                       className={`px-4 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition ${isZar ? 'bg-[var(--dondo-emerald)] text-black' : 'text-zinc-600'}`}
+                     >
+                       ZAR
+                     </button>
+                  </div>
+               </div>
+
+               <div className="flex flex-col gap-2">
+                  <label className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest ml-1">Starting Equity ({isZar ? 'ZAR' : 'USD'})</label>
+                  <input 
+                    type="number" step="any" required 
+                    value={startingBalance || ""} 
+                    onChange={e => setStartingBalance(Number(e.target.value))} 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-black outline-none focus:border-[var(--dondo-emerald)]" 
+                    placeholder="0.00"
+                  />
+               </div>
             </div>
         </div>
 
