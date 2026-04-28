@@ -22,9 +22,6 @@ export type Trade = {
   image_htf?: string;
   lesson?: string | null;
   mistake?: string | null;
-  session?: string | null;
-  setup_type?: string | null;
-  sentiment?: string | null;
 };
 
 export type Withdrawal = {
@@ -59,16 +56,14 @@ type AppContextType = {
   setIsTradeModalOpen: (val: boolean) => void;
   isWithdrawalModalOpen: boolean;
   setIsWithdrawalModalOpen: (val: boolean) => void;
+  editingTrade: Trade | null;
+  setEditingTrade: (val: Trade | null) => void;
   editingWithdrawal: Withdrawal | null;
   setEditingWithdrawal: (val: Withdrawal | null) => void;
   tradingGoal: string;
   setTradingGoal: (val: string) => void;
-  editingTrade: Trade | null;
-  setEditingTrade: (val: Trade | null) => void;
   selectedHeatmapDate: string | null;
   setSelectedHeatmapDate: (val: string | null) => void;
-  currentMonth: Date;
-  setCurrentMonth: (val: Date) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -91,7 +86,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
   const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const usdZarRate = 18.5;
 
   const setIsZar = (val: boolean) => {
@@ -104,7 +98,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoadingAuth(false);
     });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
     });
@@ -115,7 +108,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const { data: tData } = await supabase.from('trades').select('*').eq('user_id', user.id).order('trade_date', { ascending: false });
     if (tData) setTrades(tData as Trade[]);
-
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (profile) {
       setFirstName(profile.first_name || "");
@@ -141,9 +133,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, loadingAuth, firstName, lastName, isZar, setIsZar, usdZarRate, trades, withdrawals, fetchTrades, fetchWithdrawals,
       startingBalance, setStartingBalance, leverage, setLeverage, broker, setBroker,
       defaultLotSize, setDefaultLotSize, isTradeModalOpen, setIsTradeModalOpen,
-      isWithdrawalModalOpen, setIsWithdrawalModalOpen, editingWithdrawal, setEditingWithdrawal,
-      tradingGoal, setTradingGoal, editingTrade, setEditingTrade,
-      selectedHeatmapDate, setSelectedHeatmapDate, currentMonth, setCurrentMonth
+      isWithdrawalModalOpen, setIsWithdrawalModalOpen, editingTrade, setEditingTrade,
+      editingWithdrawal, setEditingWithdrawal, tradingGoal, setTradingGoal,
+      selectedHeatmapDate, setSelectedHeatmapDate
     }}>
       {children}
     </AppContext.Provider>
