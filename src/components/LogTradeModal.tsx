@@ -275,7 +275,7 @@ const ImageUploader = ({ label, url, setUrl, setFile }: { label: string, url: st
         {url ? (
           <>
             <img src={url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition" />
-            <button type="button" onClick={() => { setUrl(""); setFile(null); }} className="absolute top-2 right-2 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition"><X size={12}/></button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); setUrl(""); setFile(null); }} className="absolute top-2 right-2 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition"><X size={12}/></button>
           </>
         ) : (
           <div className="flex flex-col items-center gap-1 text-zinc-700 group-hover:text-emerald-500 transition">
@@ -283,7 +283,18 @@ const ImageUploader = ({ label, url, setUrl, setFile }: { label: string, url: st
             <span className="text-[8px] font-black uppercase tracking-widest">Upload</span>
           </div>
         )}
-        <input type="file" onChange={e => e.target.files && setFile(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
+        <input 
+          type="file" 
+          accept="image/*"
+          onChange={e => {
+            if (e.target.files && e.target.files[0]) {
+              const file = e.target.files[0];
+              setFile(file);
+              setUrl(URL.createObjectURL(file));
+            }
+          }} 
+          className="absolute inset-0 opacity-0 cursor-pointer" 
+        />
       </div>
     </div>
   );

@@ -18,9 +18,13 @@ export default function ProfileView() {
 
   const handleUploadGoalImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return;
+    const file = e.target.files[0];
+    
+    // Show preview immediately
+    setGoalsImage(URL.createObjectURL(file));
+    
     setSaving(true);
     try {
-      const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-goal.${fileExt}`;
       
@@ -162,6 +166,19 @@ export default function ProfileView() {
         <button type="submit" disabled={saving} className="w-full py-5 text-black font-black uppercase tracking-[0.25em] text-[10px] rounded-2xl bg-[var(--dondo-emerald)] shadow-[0_0_30px_rgba(16,185,129,0.25)] hover:bg-[#10b981]/90 active:scale-[0.97] transition-all">
             {saving ? 'PROCESSING...' : 'SAVE SETTINGS'}
         </button>
+
+        <div className="mt-8 pt-8 border-t border-white/5">
+           <button 
+             type="button"
+             onClick={async () => {
+               await supabase.auth.signOut();
+               window.location.reload();
+             }}
+             className="w-full py-4 text-red-500 font-black uppercase tracking-[0.25em] text-[10px] rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-all"
+           >
+             Secure Sign Out
+           </button>
+        </div>
       </form>
     </div>
   );
