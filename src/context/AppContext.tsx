@@ -17,12 +17,13 @@ export type Trade = {
   pnl: number | null;
   status: string | null;
   trade_date: string;
-  created_at?: string; // ADDED THIS - Likely the culprit
+  created_at?: string;
   image_ltf?: string;
   image_mtf?: string;
   image_htf?: string;
   lesson?: string | null;
   mistake?: string | null;
+  // COMPATIBILITY FIELDS - DO NOT REMOVE
   session?: string | null;
   setup_type?: string | null;
   sentiment?: string | null;

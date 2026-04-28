@@ -6,11 +6,8 @@ import { format, isSameDay } from "date-fns";
 
 export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t: string) => void }) {
   const { trades, withdrawals, selectedHeatmapDate, isZar, usdZarRate } = useAppContext();
-
-  // If a specific day is clicked, we filter the list below the heatmap.
   const selectedDateObj = selectedHeatmapDate ? new Date(selectedHeatmapDate) : null;
 
-  // Calculate high level monthly stats for the mini grid
   const winDays = new Set();
   const lossDays = new Set();
   
@@ -20,7 +17,6 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
       if (t.status === 'loss') lossDays.add(day);
   });
 
-  // Filter trades and withdrawals for the selected day list
   const dailyTrades = selectedDateObj 
     ? trades.filter(t => isSameDay(new Date(t.trade_date), selectedDateObj))
     : [];
@@ -53,7 +49,6 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
 
       <Heatmap tradesData={trades} setActiveTab={setActiveTab} />
       
-      {/* Daily Breakdown Log */}
       {selectedDateObj && (
         <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
            <div className={`p-5 rounded-3xl mb-4 text-center ring-1 ${isDailyWin ? 'bg-[#064e3b] text-[var(--dondo-emerald)] ring-[#065f46]' : 'bg-[#450a0a] text-red-500 ring-[#7f1d1d]'}`}>
@@ -62,7 +57,7 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
                {isDailyWin ? '+' : ''}{isZar ? 'R' : '$'}{Math.abs(displayDailyPnL).toFixed(2)}
              </div>
              <div className="flex gap-2 justify-center mt-1">
-               <span className="text-[10px] uppercase font-bold tracking-widest opacity-70 bg-black/20 px-2 py-0.5 rounded">{dailyTrades.length} Trades Taken</span>
+               <span className="text-[10px] uppercase font-bold tracking-widest opacity-70 bg-black/20 px-2 py-0.5 rounded">{dailyTrades.length} Trades</span>
                {dailyWithdrawals.length > 0 && (
                  <span className="text-[10px] uppercase font-bold tracking-widest text-black bg-[#fbbf24] px-2 py-0.5 rounded">{dailyWithdrawals.length} Paydays</span>
                )}
@@ -71,7 +66,7 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
 
            <div className="flex flex-col gap-3">
               {dailyTrades.length === 0 ? (
-                <div className="text-center text-[10px] font-bold tracking-widest uppercase text-zinc-600 mt-4">No trades on this date.</div>
+                <div className="text-center text-[10px] font-bold tracking-widest uppercase text-zinc-600 mt-4">No records.</div>
               ) : (
                 dailyTrades.map((trade) => {
                   let amountValue = trade.pnl || 0;
@@ -81,7 +76,7 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
                   return (
                     <div key={trade.id} className="glass-panel p-4 ring-1 ring-white/5 border-none flex items-center justify-between bg-white/[0.02] rounded-2xl">
                       <div className="flex gap-4 items-center">
-                        <div className={`w-2 h-2 rounded-full ${trade.status === 'win' ? 'bg-[var(--dondo-emerald)] shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${trade.status === 'win' ? 'bg-[var(--dondo-emerald)]' : 'bg-red-500'}`}></div>
                         <div>
                           <div className="font-black text-white text-sm tracking-wide">
                             {trade.asset} <span className="text-[10px] opacity-40 ml-1 font-normal">{trade.direction}</span>
@@ -98,27 +93,6 @@ export default function HeatmapDetailsView({ setActiveTab }: { setActiveTab: (t:
                   );
                 })
               )}
-
-              {dailyWithdrawals.map(w => {
-                 const amountValue = isZar ? w.amount * usdZarRate : w.amount;
-                 const amountStr = `${isZar ? 'R' : '$'}${Math.abs(amountValue).toFixed(2)}`;
-                 return (
-                    <div key={w.id} className="glass-panel p-4 ring-1 ring-[#fbbf24]/20 border border-[#fbbf24]/10 flex items-center justify-between bg-[#fbbf24]/5 rounded-2xl">
-                      <div className="flex gap-4 items-center">
-                        <div className="w-2 h-2 rounded-full bg-[#fbbf24] shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div>
-                        <div>
-                          <div className="font-black text-white text-sm tracking-wide">WITHDRAWAL</div>
-                          <div className="text-[10px] text-[#fbbf24]/70 mt-0.5 font-medium tracking-wide">
-                            {format(new Date(w.withdrawal_date), "HH:mm")}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-black tracking-wide text-[#fbbf24]">- {amountStr}</div>
-                      </div>
-                    </div>
-                 )
-              })}
            </div>
         </div>
       )}
