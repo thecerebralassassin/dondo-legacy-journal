@@ -87,10 +87,10 @@ export default function LogTradeModal() {
 
   const uploadImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const { data, error } = await supabase.storage.from('trade-images').upload(fileName, file);
     if (error) throw error;
-    const { data: { publicUrl } } = supabase.storage.from('trade-images').getPublicUrl(data.path);
+    const { data: { publicUrl } } = supabase.storage.from('trade-images').getPublicUrl(fileName);
     return publicUrl;
   };
 
