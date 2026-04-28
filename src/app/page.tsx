@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <div className="bg-black min-h-screen w-full relative pb-32 overflow-x-hidden">
        {activeTab === "DASHBOARD" && <Dashboard setActiveTab={setActiveTab} />}
-       {activeTab === "TRADES" && <TradesView setActiveTab={setActiveTab} />}
+       {activeTab === "TRADES" && <TradesView />}
        {activeTab === "PROFILE" && <ProfileView />}
        {activeTab === "MONTHLY_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
        

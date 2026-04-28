@@ -133,24 +133,6 @@ export default function LogTradeModal() {
     setLtfFile(null); setMtfFile(null); setHtfFile(null);
   };
 
-  const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
-    const handleFileChange = (e: any) => {
-      if (e.target.files && e.target.files[0]) {
-        setFile(e.target.files[0]);
-        setUrl(URL.createObjectURL(e.target.files[0]));
-      }
-    };
-    return (
-      <div className="flex flex-col gap-1">
-        <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{label}</label>
-        <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition hover:bg-white/[0.08]">
-          {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-        </label>
-      </div>
-    );
-  };
-
   if (!isTradeModalOpen) return null;
 
   return (
@@ -254,3 +236,21 @@ export default function LogTradeModal() {
     </div>
   );
 }
+
+const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
+  const handleFileChange = (e: any) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setUrl(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{label}</label>
+      <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition hover:bg-white/[0.08]">
+        {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
+        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      </label>
+    </div>
+  );
+};

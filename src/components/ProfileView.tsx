@@ -3,7 +3,7 @@
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
-import { User, LogOut, ShieldCheck, Target } from "lucide-react";
+import { User, ShieldCheck } from "lucide-react";
 
 export default function ProfileView() {
   const { 

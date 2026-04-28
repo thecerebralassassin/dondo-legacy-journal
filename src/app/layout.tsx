@@ -40,10 +40,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      style={{ backgroundColor: '#000000' }}
+      className="h-full antialiased"
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-black text-white selection:bg-[var(--dondo-emerald)] selection:text-black">
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col bg-black text-white selection:bg-[var(--dondo-emerald)] selection:text-black`}>
         <AppProvider>
           {children}
         </AppProvider>

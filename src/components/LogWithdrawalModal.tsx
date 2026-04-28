@@ -27,13 +27,13 @@ export default function LogWithdrawalModal() {
       
       setAmount(displayAmount.toString());
       setNotes(editingWithdrawal.notes || "");
-      setIsWithdrawalModalOpen(true);
     } else if (isWithdrawalModalOpen) {
+      // Default reset only when opening for a fresh log
       setDate(new Date().toISOString().split('T')[0]);
       setAmount("");
       setNotes("");
     }
-  }, [editingWithdrawal, isWithdrawalModalOpen, setIsWithdrawalModalOpen, isZar, usdZarRate, setEditingWithdrawal]);
+  }, [editingWithdrawal, isZar, usdZarRate, isWithdrawalModalOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

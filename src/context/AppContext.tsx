@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 
@@ -66,6 +66,8 @@ type AppContextType = {
   setTradingGoal: (val: string) => void;
   selectedHeatmapDate: string | null;
   setSelectedHeatmapDate: (val: string | null) => void;
+  currentMonth: Date;
+  setCurrentMonth: (val: Date) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -88,7 +90,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
   const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0, 1)); // Default to a fixed date initially
   const usdZarRate = 18.5;
+
+  useEffect(() => {
+    // Set current month to now only after mount to avoid hydration mismatch
+    setCurrentMonth(new Date());
+  }, []);
 
   const setIsZar = (val: boolean) => {
     setIsZarState(val);
@@ -103,10 +111,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
     });
+
+    // Initialize currency preference from localStorage
+    if (typeof window !== 'undefined') {
+      const pref = localStorage.getItem('currency_pref');
+      if (pref === 'usd') setIsZarState(false);
+    }
+
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchTrades = async () => {
+  const fetchTrades = useCallback(async () => {
     if (!user) return;
     const { data: tData } = await supabase.from('trades').select('*').eq('user_id', user.id).order('trade_date', { ascending: false });
     if (tData) setTrades(tData as Trade[]);
@@ -120,15 +135,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDefaultLotSize(Number(profile.default_lot_size) || 0.1);
       setTradingGoal(profile.trading_goal || "");
     }
-  };
+  }, [user]);
 
-  const fetchWithdrawals = async () => {
+  const fetchWithdrawals = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase.from('withdrawals').select('*').eq('user_id', user.id);
     if (data) setWithdrawals(data as Withdrawal[]);
-  };
+  }, [user]);
 
-  useEffect(() => { if (user) { fetchTrades(); fetchWithdrawals(); } }, [user]);
+  useEffect(() => { 
+    if (user) { 
+      fetchTrades(); 
+      fetchWithdrawals(); 
+    } 
+  }, [user, fetchTrades, fetchWithdrawals]);
 
   return (
     <AppContext.Provider value={{
@@ -137,7 +157,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       defaultLotSize, setDefaultLotSize, isTradeModalOpen, setIsTradeModalOpen,
       isWithdrawalModalOpen, setIsWithdrawalModalOpen, editingTrade, setEditingTrade,
       editingWithdrawal, setEditingWithdrawal, tradingGoal, setTradingGoal,
-      selectedHeatmapDate, setSelectedHeatmapDate
+      selectedHeatmapDate, setSelectedHeatmapDate,
+      currentMonth, setCurrentMonth
     }}>
       {children}
     </AppContext.Provider>

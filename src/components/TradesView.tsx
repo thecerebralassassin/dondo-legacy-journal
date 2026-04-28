@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Trash2, Edit3 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
-export default function TradesView({ setActiveTab }: { setActiveTab: (t: string) => void }) {
+export default function TradesView() {
   const { trades, fetchTrades, isZar, usdZarRate, setEditingTrade, setIsTradeModalOpen } = useAppContext();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
