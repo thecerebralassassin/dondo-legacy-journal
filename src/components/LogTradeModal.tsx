@@ -81,49 +81,62 @@ export default function LogTradeModal() {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
-    
-    let finalPnl = pnl ? parseFloat(pnl) : 0;
-    if (isZar) finalPnl = finalPnl / usdZarRate;
-    if (status === 'loss') finalPnl = -Math.abs(finalPnl);
-    
-    // Combine Date and Time for the database
-    const isoDate = new Date(`${tradeDate}T${tradeTime}:00`).toISOString();
 
-    let insertLtf = ltfUrl, insertMtf = mtfUrl, insertHtf = htfUrl;
-    if (ltfFile) insertLtf = await uploadImageObj(ltfFile) || "";
-    if (mtfFile) insertMtf = await uploadImageObj(mtfFile) || "";
-    if (htfFile) insertHtf = await uploadImageObj(htfFile) || "";
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-    const tradeData = {
-      user_id: user.id, 
-      asset, 
-      direction, 
-      entry_price: parseFloat(entryPrice), 
-      // Handle Optional numbers: if empty, send null
-      stop_loss: stopLoss ? parseFloat(stopLoss) : null,
-      take_profit: takeProfit ? parseFloat(takeProfit) : null, 
-      lot_size: parseFloat(lotSize),
-      pnl: finalPnl, 
-      status, 
-      lesson, 
-      mistake,
-      trade_date: isoDate, 
-      image_ltf: insertLtf, 
-      image_mtf: insertMtf, 
-      image_htf: insertHtf
-    };
+      let ltf_url = ltfUrl;
+      let mtf_url = mtfUrl;
+      let htf_url = htfUrl;
 
-    const { error } = editingTrade 
-      ? await supabase.from('trades').update(tradeData).eq('id', editingTrade.id)
-      : await supabase.from('trades').insert(tradeData);
+      // Handle image uploads only if a new file was selected
+      if (ltfFile) ltf_url = await uploadImage(ltfFile, "ltf") || "";
+      if (mtfFile) mtf_url = await uploadImage(mtfFile, "mtf") || "";
+      if (htfFile) htf_url = await uploadImage(htfFile, "htf") || "";
 
-    if (!error) { 
-      await fetchTrades(); 
-      handleClose(); 
-    } else {
-      alert("Database error: " + error.message);
+      let finalPnl = pnl ? parseFloat(pnl) : 0;
+      if (isZar) finalPnl = finalPnl / usdZarRate;
+      if (status === 'loss') finalPnl = -Math.abs(finalPnl);
+
+      const tradeData = {
+        user_id: user.id,
+        asset,
+        direction,
+        entry_price: parseFloat(entryPrice) || 0,
+        stop_loss: stopLoss ? parseFloat(stopLoss) : null,
+        take_profit: takeProfit ? parseFloat(takeProfit) : null,
+        lot_size: parseFloat(lotSize) || 0,
+        pnl: finalPnl,
+        status,
+        trade_date: `${tradeDate}T${tradeTime}:00Z`,
+        image_ltf: ltf_url,
+        image_mtf: mtf_url,
+        image_htf: htf_url,
+        lesson,
+        mistake
+      };
+
+      if (editingTrade) {
+        const { error } = await supabase
+          .from('trades')
+          .update(tradeData)
+          .eq('id', editingTrade.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('trades')
+          .insert([tradeData]);
+        if (error) throw error;
+      }
+
+      await fetchTrades();
+      handleClose();
+    } catch (error: any) {
+      alert(`Database error: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleClose = () => {
