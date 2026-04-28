@@ -70,7 +70,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
-  const [isZar, setIsZarInternal] = useState(false);
+  const [isZar, setIsZarInternal] = useState(true);
   const [startingBalance, setStartingBalanceInternal] = useState(0);
   const [goalsText, setGoalsTextInternal] = useState("");
   const [goalsImage, setGoalsImageInternal] = useState("");
@@ -110,7 +110,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     
     if (data && !error) {
       setStartingBalanceInternal(data.starting_balance || 0);
-      setIsZarInternal(data.currency_pref === 'ZAR');
+      setIsZarInternal(data.currency_pref === 'USD' ? false : true);
       setGoalsTextInternal(data.goals_text || "");
       setGoalsImageInternal(data.goals_image || "");
     }
