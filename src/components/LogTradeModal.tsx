@@ -109,6 +109,8 @@ export default function LogTradeModal() {
       if (isZar) rawPnl = rawPnl / usdZarRate;
       if (status === 'loss') rawPnl = -Math.abs(rawPnl);
 
+      const fullDate = `${tradeDate}T12:00:00Z`; // Noon UTC to prevent date shifting
+
       const tradeData = {
         user_id: user.id,
         asset,
