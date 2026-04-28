@@ -119,7 +119,7 @@ export default function LogTradeModal() {
         take_profit: takeProfit ? parseFloat(takeProfit) : null,
         lot_size: lotSize ? parseFloat(lotSize) : null,
         pnl: rawPnl,
-        trade_date: `${tradeDate}T${tradeTime}:00Z`,
+        trade_date: fullDate,
         image_ltf: finalLtf,
         image_mtf: finalMtf,
         image_htf: finalHtf,

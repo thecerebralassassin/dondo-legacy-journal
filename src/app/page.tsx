@@ -41,12 +41,16 @@ export default function Home() {
 
   return (
     <div className="bg-black min-h-screen w-full relative pb-32 overflow-x-hidden">
-       {activeTab === "DASHBOARD" && <Dashboard setActiveTab={setActiveTab} />}
-       {activeTab === "TRADES" && <TradesView />}
-       {activeTab === "ANALYTICS" && <AnalyticsView />}
-       {activeTab === "PROFILE" && <ProfileView />}
-       {activeTab === "MONTHLY_DETAILS" && <MonthlyDetailsView setActiveTab={setActiveTab} />}
-       {activeTab === "HEATMAP_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
+        {/* Keep Dashboard mounted but hidden to prevent image flicker/reload */}
+        <div className={activeTab === "DASHBOARD" ? "block" : "hidden"}>
+          <Dashboard setActiveTab={setActiveTab} />
+        </div>
+
+        {activeTab === "TRADES" && <TradesView />}
+        {activeTab === "ANALYTICS" && <AnalyticsView />}
+        {activeTab === "PROFILE" && <ProfileView />}
+        {activeTab === "MONTHLY_DETAILS" && <MonthlyDetailsView setActiveTab={setActiveTab} />}
+        {activeTab === "HEATMAP_DETAILS" && <HeatmapDetailsView setActiveTab={setActiveTab} />}
        
        <LogTradeModal />
        <LogWithdrawalModal />

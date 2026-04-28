@@ -59,7 +59,7 @@ export default function LogWithdrawalModal() {
     const payload = {
       user_id: user.id,
       amount: parsedAmount,
-      withdrawal_date: `${date}T12:00:00Z`,
+      withdrawal_date: `${date}T12:00:00Z`, // Use Noon UTC to prevent timezone shifts
       notes: notes || null
     };
 
@@ -70,6 +70,18 @@ export default function LogWithdrawalModal() {
     if (error) {
       alert("System Error: " + error.message);
     } else {
+      await fetchWithdrawals();
+      handleClose();
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!editingWithdrawal || !confirm("Are you sure you want to delete this withdrawal?")) return;
+    setLoading(true);
+    const { error } = await supabase.from('withdrawals').delete().eq('id', editingWithdrawal.id);
+    if (error) alert(error.message);
+    else {
       await fetchWithdrawals();
       handleClose();
     }
@@ -143,7 +155,7 @@ export default function LogWithdrawalModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 border-t border-white/5 bg-black/40 rounded-b-3xl mt-auto">
+        <div className="p-5 border-t border-white/5 bg-black/40 rounded-b-3xl mt-auto flex flex-col gap-3">
            <button 
              type="submit" form="withdrawalForm" disabled={loading}
              className="w-full py-4 rounded-xl bg-[#fbbf24] hover:bg-[#f59e0b] shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all text-black font-black uppercase tracking-widest flex items-center justify-center gap-2 btn-tactile text-xs disabled:opacity-50"
@@ -154,6 +166,15 @@ export default function LogWithdrawalModal() {
                 <><CheckCircle2 size={16} /> {editingWithdrawal ? 'UPDATE PAYDAY' : 'SECURE THE BAG'}</>
               )}
            </button>
+
+           {editingWithdrawal && (
+             <button 
+               type="button" onClick={handleDelete} disabled={loading}
+               className="w-full py-2 text-[8px] font-black uppercase tracking-[0.3em] text-red-500 hover:text-red-400 transition"
+             >
+               Delete Record
+             </button>
+           )}
         </div>
       </div>
     </div>
