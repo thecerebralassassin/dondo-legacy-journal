@@ -168,6 +168,26 @@ export default function LogTradeModal() {
 
         <form onSubmit={handleSubmit} className="p-8 overflow-y-auto custom-scrollbar flex flex-col gap-8">
           
+          {/* Date & Time Manual Entry */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Execution Date</label>
+              <input 
+                type="date"
+                value={tradeDate} onChange={e => setTradeDate(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:border-emerald-500/50 outline-none transition"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Execution Time</label>
+              <input 
+                type="time"
+                value={tradeTime} onChange={e => setTradeTime(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:border-emerald-500/50 outline-none transition"
+              />
+            </div>
+          </div>
+
           {/* Asset & Direction */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
