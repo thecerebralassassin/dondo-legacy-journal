@@ -43,11 +43,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (t: string) 
       {/* HERO SECTION: Banner & Faith Quote */}
       <div className="px-6 flex flex-col lg:flex-row items-center gap-8">
         {/* Banner */}
-        <div className="w-full lg:w-2/3 h-56 rounded-2xl overflow-hidden border border-white/5 relative group shadow-2xl">
+        <div className="w-full lg:w-2/3 h-64 rounded-2xl overflow-hidden border border-white/5 relative group shadow-2xl">
           <img 
             src="/adam.jpg" 
             alt="The Creation of Adam" 
-            className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
+            className="w-full h-full object-cover object-[50%_25%] scale-125 opacity-90 transition-transform duration-1000 group-hover:scale-[1.3]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>

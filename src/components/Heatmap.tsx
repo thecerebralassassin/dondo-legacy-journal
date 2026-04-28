@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function Heatmap({ tradesData = [], setActiveTab }: { tradesData?: Trade[], setActiveTab: (t: string) => void }) {
   const { setSelectedHeatmapDate, currentMonth, setCurrentMonth } = useAppContext();
   
+  if (!currentMonth) return null;
+  
   // Real Date object strictly for outlining "today's" block
   const actualToday = new Date();
 

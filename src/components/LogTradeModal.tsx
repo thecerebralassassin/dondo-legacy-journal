@@ -250,8 +250,15 @@ export default function LogTradeModal() {
   );
 }
 
-const ImageUploader = ({ label, url, setUrl, setFile }: any) => {
-  const handleFileChange = (e: any) => {
+interface ImageUploaderProps {
+  label: string;
+  url: string;
+  setUrl: (url: string) => void;
+  setFile: (file: File | null) => void;
+}
+
+const ImageUploader = ({ label, url, setUrl, setFile }: ImageUploaderProps) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setUrl(URL.createObjectURL(e.target.files[0]));

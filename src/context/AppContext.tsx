@@ -90,11 +90,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
   const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0, 1)); // Default to a fixed date initially
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const usdZarRate = 18.5;
 
   useEffect(() => {
-    // Set current month to now only after mount to avoid hydration mismatch
     setCurrentMonth(new Date());
   }, []);
 

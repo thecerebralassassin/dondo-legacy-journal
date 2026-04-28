@@ -20,18 +20,21 @@ export default function LogWithdrawalModal() {
 
   useEffect(() => {
     if (editingWithdrawal) {
-      setDate(editingWithdrawal.withdrawal_date.split('T')[0]);
-      
-      let displayAmount = editingWithdrawal.amount;
-      if (isZar) displayAmount = displayAmount * usdZarRate;
-      
-      setAmount(displayAmount.toString());
-      setNotes(editingWithdrawal.notes || "");
+      setTimeout(() => {
+        setDate(editingWithdrawal.withdrawal_date.split('T')[0]);
+        
+        let displayAmount = editingWithdrawal.amount;
+        if (isZar) displayAmount = displayAmount * usdZarRate;
+        
+        setAmount(displayAmount.toString());
+        setNotes(editingWithdrawal.notes || "");
+      }, 0);
     } else if (isWithdrawalModalOpen) {
-      // Default reset only when opening for a fresh log
-      setDate(new Date().toISOString().split('T')[0]);
-      setAmount("");
-      setNotes("");
+      setTimeout(() => {
+        setDate(new Date().toISOString().split('T')[0]);
+        setAmount("");
+        setNotes("");
+      }, 0);
     }
   }, [editingWithdrawal, isZar, usdZarRate, isWithdrawalModalOpen]);
 
