@@ -23,7 +23,6 @@ export type Trade = {
   image_htf?: string;
   lesson?: string | null;
   mistake?: string | null;
-  // COMPATIBILITY FIELDS - DO NOT REMOVE
   session?: string | null;
   setup_type?: string | null;
   sentiment?: string | null;
@@ -34,7 +33,7 @@ export type Withdrawal = {
   user_id: string;
   amount: number;
   withdrawal_date: string;
-  notes: string | null;
+  notes: string | null; // Added this to fix the error
 };
 
 type AppContextType = {
@@ -55,6 +54,12 @@ type AppContextType = {
   setDefaultLotSize: (val: number) => void;
   isTradeModalOpen: boolean;
   setIsTradeModalOpen: (val: boolean) => void;
+  // Added these to fix your LogWithdrawalModal errors:
+  isWithdrawalModalOpen: boolean;
+  setIsWithdrawalModalOpen: (val: boolean) => void;
+  editingWithdrawal: Withdrawal | null;
+  setEditingWithdrawal: (val: Withdrawal | null) => void;
+  // ---
   selectedHeatmapDate: string | null;
   setSelectedHeatmapDate: (val: string | null) => void;
   currentMonth: Date;
@@ -65,10 +70,6 @@ type AppContextType = {
   setTradingGoal: (val: string) => void;
   withdrawals: Withdrawal[];
   fetchWithdrawals: () => Promise<void>;
-  isWithdrawalModalOpen: boolean;
-  setIsWithdrawalModalOpen: (val: boolean) => void;
-  editingWithdrawal: Withdrawal | null;
-  setEditingWithdrawal: (val: Withdrawal | null) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -89,10 +90,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+  const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
+  
   const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
-  const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
 
   const setIsZar = (val: boolean) => {
     setIsZarState(val);
@@ -169,10 +171,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       startingBalance, setStartingBalance, 
       leverage, setLeverage, broker, setBroker, defaultLotSize, setDefaultLotSize,
       tradingGoal, setTradingGoal,
-      isTradeModalOpen, setIsTradeModalOpen, selectedHeatmapDate, setSelectedHeatmapDate,
+      isTradeModalOpen, setIsTradeModalOpen, 
+      isWithdrawalModalOpen, setIsWithdrawalModalOpen,
+      editingWithdrawal, setEditingWithdrawal,
+      selectedHeatmapDate, setSelectedHeatmapDate,
       currentMonth, setCurrentMonth, editingTrade, setEditingTrade,
-      withdrawals, fetchWithdrawals, isWithdrawalModalOpen, setIsWithdrawalModalOpen,
-      editingWithdrawal, setEditingWithdrawal
+      withdrawals, fetchWithdrawals
     }}>
       {children}
     </AppContext.Provider>

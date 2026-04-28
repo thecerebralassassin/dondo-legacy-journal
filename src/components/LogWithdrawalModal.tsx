@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -31,7 +33,7 @@ export default function LogWithdrawalModal() {
       setAmount("");
       setNotes("");
     }
-  }, [editingWithdrawal, isWithdrawalModalOpen, setIsWithdrawalModalOpen]);
+  }, [editingWithdrawal, isWithdrawalModalOpen, setIsWithdrawalModalOpen, isZar, usdZarRate, setEditingWithdrawal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,7 @@ export default function LogWithdrawalModal() {
        return;
     }
 
+    // Convert back to USD base for database storage
     if (isZar) {
        parsedAmount = parsedAmount / usdZarRate;
     }
@@ -57,21 +60,22 @@ export default function LogWithdrawalModal() {
       notes: notes || null
     };
 
-    if (editingWithdrawal) {
-      const { error } = await supabase.from('withdrawals').update(payload).eq('id', editingWithdrawal.id);
-      if (error) alert("Error: " + error.message);
-    } else {
-      const { error } = await supabase.from('withdrawals').insert([payload]);
-      if (error) alert("Error: " + error.message);
-    }
+    const { error } = editingWithdrawal 
+      ? await supabase.from('withdrawals').update(payload).eq('id', editingWithdrawal.id)
+      : await supabase.from('withdrawals').insert([payload]);
 
-    await fetchWithdrawals();
+    if (error) {
+      alert("System Error: " + error.message);
+    } else {
+      await fetchWithdrawals();
+      handleClose();
+    }
     setLoading(false);
-    handleClose();
   };
 
   const handleClose = () => {
     setIsWithdrawalModalOpen(false);
+    // Short delay before clearing edit state for smooth animation
     setTimeout(() => {
       setEditingWithdrawal(null);
     }, 300);
@@ -105,15 +109,15 @@ export default function LogWithdrawalModal() {
            <form id="withdrawalForm" onSubmit={handleSubmit} className="flex flex-col gap-4">
               
               <div className="bg-black/50 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
-                 <div>
+                  <div>
                     <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5 block">Withdrawal Date</label>
                     <input 
                       type="date" required value={date} onChange={e => setDate(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#fbbf24] transition"
                     />
-                 </div>
-                 
-                 <div>
+                  </div>
+                  
+                  <div>
                     <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5 block">Amount Withdrawn</label>
                     <div className="relative">
                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold">{isZar ? 'R' : '$'}</span>
@@ -122,17 +126,16 @@ export default function LogWithdrawalModal() {
                          className="w-full bg-white/5 border border-[#fbbf24]/20 rounded-xl pl-8 pr-4 py-3 text-white font-black text-lg outline-none focus:border-[#fbbf24] transition shadow-inner"
                        />
                     </div>
-                 </div>
+                  </div>
 
-                 <div>
+                  <div>
                     <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5 block">Optional Notes / Remarks</label>
                     <textarea 
                       value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Paid Rent, Bought new gear..."
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-[#fbbf24] transition h-20 resize-none"
                     />
-                 </div>
+                  </div>
               </div>
-
            </form>
         </div>
 
@@ -149,7 +152,6 @@ export default function LogWithdrawalModal() {
               )}
            </button>
         </div>
-
       </div>
     </div>
   );

@@ -17,8 +17,8 @@ export default function LogTradeModal() {
   
   // Financial Inputs
   const [entryPrice, setEntryPrice] = useState("");
-  const [stopLoss, setStopLoss] = useState("");
-  const [takeProfit, setTakeProfit] = useState("");
+  const [stopLoss, setStopLoss] = useState(""); // Now Optional
+  const [takeProfit, setTakeProfit] = useState(""); // Now Optional
   const [lotSize, setLotSize] = useState("");
   const [pnl, setPnl] = useState("");
   
@@ -99,8 +99,9 @@ export default function LogTradeModal() {
       asset, 
       direction, 
       entry_price: parseFloat(entryPrice), 
-      stop_loss: parseFloat(stopLoss),
-      take_profit: parseFloat(takeProfit), 
+      // Handle Optional numbers: if empty, send null
+      stop_loss: stopLoss ? parseFloat(stopLoss) : null,
+      take_profit: takeProfit ? parseFloat(takeProfit) : null, 
       lot_size: parseFloat(lotSize),
       pnl: finalPnl, 
       status, 
@@ -220,12 +221,12 @@ export default function LogTradeModal() {
                  <input type="number" step="any" value={lotSize} onChange={e => setLotSize(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-white/30" required />
                </div>
                <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-red-500/50 font-bold uppercase tracking-widest">Stop Loss (SL)</label>
-                 <input type="number" step="any" value={stopLoss} onChange={e => setStopLoss(e.target.value)} className="bg-white/5 border border-red-500/20 rounded-xl p-4 text-red-400 outline-none focus:border-red-500/40" required />
+                 <label className="text-[9px] text-red-500/50 font-bold uppercase tracking-widest">Stop Loss (Optional)</label>
+                 <input type="number" step="any" value={stopLoss} onChange={e => setStopLoss(e.target.value)} className="bg-white/5 border border-red-500/20 rounded-xl p-4 text-red-400 outline-none focus:border-red-500/40" />
                </div>
                <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-[var(--dondo-emerald)]/50 font-bold uppercase tracking-widest">Take Profit (TP)</label>
-                 <input type="number" step="any" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} className="bg-white/5 border border-[var(--dondo-emerald)]/20 rounded-xl p-4 text-[var(--dondo-emerald)] outline-none focus:border-[var(--dondo-emerald)]/40" required />
+                 <label className="text-[9px] text-[var(--dondo-emerald)]/50 font-bold uppercase tracking-widest">Take Profit (Optional)</label>
+                 <input type="number" step="any" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} className="bg-white/5 border border-[var(--dondo-emerald)]/20 rounded-xl p-4 text-[var(--dondo-emerald)] outline-none focus:border-[var(--dondo-emerald)]/40" />
                </div>
             </div>
 
