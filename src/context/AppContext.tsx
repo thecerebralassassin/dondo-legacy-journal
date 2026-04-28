@@ -1,29 +1,27 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { User } from "@supabase/supabase-js";
 
 export type Trade = {
   id: string;
   user_id: string;
   asset: string;
-  direction: string; 
+  direction: string;
+  status: string;
   entry_price: number | null;
   stop_loss: number | null;
   take_profit: number | null;
   lot_size: number | null;
-  risk_reward: number | null;
-  pnl: number | null;
-  status: string | null;
+  pnl: number;
   trade_date: string;
   image_ltf?: string;
   image_mtf?: string;
   image_htf?: string;
-  lesson?: string | null;
-  mistake?: string | null;
-  session?: string | null;
-  setup_type?: string | null;
+  lesson?: string;
+  mistake?: string;
+  session?: string;
+  setup_type?: string;
 };
 
 export type Withdrawal = {
@@ -31,132 +29,127 @@ export type Withdrawal = {
   user_id: string;
   amount: number;
   withdrawal_date: string;
-  notes: string | null;
+  notes?: string;
 };
 
 type AppContextType = {
-  user: User | null;
-  loadingAuth: boolean;
-  firstName: string;
-  lastName: string;
+  user: any;
+  trades: Trade[];
+  withdrawals: Withdrawal[];
   isZar: boolean;
   setIsZar: (val: boolean) => void;
   usdZarRate: number;
-  trades: Trade[];
-  withdrawals: Withdrawal[];
-  fetchTrades: () => Promise<void>;
-  fetchWithdrawals: () => Promise<void>;
   startingBalance: number;
   setStartingBalance: (val: number) => void;
-  leverage: string;
-  setLeverage: (val: string) => void;
-  broker: string;
-  setBroker: (val: string) => void;
-  defaultLotSize: number;
-  setDefaultLotSize: (val: number) => void;
+  fetchTrades: () => Promise<void>;
+  fetchWithdrawals: () => Promise<void>;
   isTradeModalOpen: boolean;
   setIsTradeModalOpen: (val: boolean) => void;
   isWithdrawalModalOpen: boolean;
   setIsWithdrawalModalOpen: (val: boolean) => void;
   editingTrade: Trade | null;
-  setEditingTrade: (val: Trade | null) => void;
+  setEditingTrade: (t: Trade | null) => void;
   editingWithdrawal: Withdrawal | null;
-  setEditingWithdrawal: (val: Withdrawal | null) => void;
-  tradingGoal: string;
-  setTradingGoal: (val: string) => void;
-  selectedHeatmapDate: string | null;
-  setSelectedHeatmapDate: (val: string | null) => void;
-  currentMonth: Date;
-  setCurrentMonth: (val: Date) => void;
+  setEditingWithdrawal: (w: Withdrawal | null) => void;
+  currentMonth: Date | null;
+  setCurrentMonth: (d: Date) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [startingBalance, setStartingBalance] = useState(0);
-  const [leverage, setLeverage] = useState("1:100");
-  const [broker, setBroker] = useState("None");
-  const [tradingGoal, setTradingGoal] = useState("");
-  const [defaultLotSize, setDefaultLotSize] = useState(0.1);
-  const [isZar, setIsZarState] = useState(true);
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [isZar, setIsZarInternal] = useState(false);
+  const [startingBalance, setStartingBalanceInternal] = useState(0);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(null);
-  const [selectedHeatmapDate, setSelectedHeatmapDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const usdZarRate = 18.5;
 
   useEffect(() => {
     setCurrentMonth(new Date());
+    
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  const setIsZar = (val: boolean) => {
-    setIsZarState(val);
-    if (typeof window !== 'undefined') localStorage.setItem('currency_pref', val ? 'zar' : 'usd');
-  };
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoadingAuth(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Initialize currency preference from localStorage
-    if (typeof window !== 'undefined') {
-      const pref = localStorage.getItem('currency_pref');
-      if (pref === 'usd') setIsZarState(false);
+  const fetchProfile = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('starting_balance, currency_pref')
+      .eq('id', user.id)
+      .single();
+    
+    if (data && !error) {
+      setStartingBalanceInternal(data.starting_balance || 0);
+      setIsZarInternal(data.currency_pref === 'ZAR');
     }
-
-    return () => subscription.unsubscribe();
-  }, []);
+  }, [user]);
 
   const fetchTrades = useCallback(async () => {
     if (!user) return;
-    const { data: tData } = await supabase.from('trades').select('*').eq('user_id', user.id).order('trade_date', { ascending: false });
-    if (tData) setTrades(tData as Trade[]);
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profile) {
-      setFirstName(profile.first_name || "");
-      setLastName(profile.last_name || "");
-      setStartingBalance(Number(profile.starting_balance) || 0);
-      setLeverage(profile.leverage || "1:100");
-      setBroker(profile.broker || "None");
-      setDefaultLotSize(Number(profile.default_lot_size) || 0.1);
-      setTradingGoal(profile.trading_goal || "");
-    }
+    const { data, error } = await supabase
+      .from('trades')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('trade_date', { ascending: false });
+    
+    if (data && !error) setTrades(data);
   }, [user]);
 
   const fetchWithdrawals = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from('withdrawals').select('*').eq('user_id', user.id);
-    if (data) setWithdrawals(data as Withdrawal[]);
+    const { data, error } = await supabase
+      .from('withdrawals')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('withdrawal_date', { ascending: false });
+    
+    if (data && !error) setWithdrawals(data);
   }, [user]);
 
-  useEffect(() => { 
-    if (user) { 
-      fetchTrades(); 
-      fetchWithdrawals(); 
-    } 
-  }, [user, fetchTrades, fetchWithdrawals]);
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchTrades();
+      fetchWithdrawals();
+    }
+  }, [user, fetchProfile, fetchTrades, fetchWithdrawals]);
+
+  const setIsZar = async (val: boolean) => {
+    setIsZarInternal(val);
+    if (user) {
+      await supabase.from('profiles').update({ currency_pref: val ? 'ZAR' : 'USD' }).eq('id', user.id);
+    }
+  };
+
+  const setStartingBalance = async (val: number) => {
+    setStartingBalanceInternal(val);
+    if (user) {
+      await supabase.from('profiles').update({ starting_balance: val }).eq('id', user.id);
+    }
+  };
 
   return (
     <AppContext.Provider value={{
-      user, loadingAuth, firstName, lastName, isZar, setIsZar, usdZarRate, trades, withdrawals, fetchTrades, fetchWithdrawals,
-      startingBalance, setStartingBalance, leverage, setLeverage, broker, setBroker,
-      defaultLotSize, setDefaultLotSize, isTradeModalOpen, setIsTradeModalOpen,
-      isWithdrawalModalOpen, setIsWithdrawalModalOpen, editingTrade, setEditingTrade,
-      editingWithdrawal, setEditingWithdrawal, tradingGoal, setTradingGoal,
-      selectedHeatmapDate, setSelectedHeatmapDate,
+      user, trades, withdrawals, isZar, setIsZar, usdZarRate, startingBalance, setStartingBalance,
+      fetchTrades, fetchWithdrawals, isTradeModalOpen, setIsTradeModalOpen,
+      isWithdrawalModalOpen, setIsWithdrawalModalOpen,
+      editingTrade, setEditingTrade, editingWithdrawal, setEditingWithdrawal,
       currentMonth, setCurrentMonth
     }}>
       {children}
@@ -164,8 +157,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useAppContext = () => {
+export function useAppContext() {
   const context = useContext(AppContext);
-  if (!context) throw new Error("useAppContext error");
+  if (context === undefined) throw new Error("useAppContext must be used within AppProvider");
   return context;
-};
+}

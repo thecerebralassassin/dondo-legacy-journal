@@ -1,79 +1,96 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Image as ImageIcon, Clock, Calendar as CalendarIcon } from "lucide-react";
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext, Trade } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
+import { X, PlusCircle, CheckCircle2 } from "lucide-react";
 
 export default function LogTradeModal() {
-  const { user, isTradeModalOpen, setIsTradeModalOpen, fetchTrades, isZar, usdZarRate, editingTrade, setEditingTrade } = useAppContext();
+  const { 
+    user, isTradeModalOpen, setIsTradeModalOpen, 
+    fetchTrades, isZar, usdZarRate, editingTrade, setEditingTrade 
+  } = useAppContext();
 
-  // Core States
-  const [asset, setAsset] = useState("US30");
-  const [direction, setDirection] = useState("BUY"); 
+  const [asset, setAsset] = useState("EURUSD");
+  const [direction, setDirection] = useState("BUY");
+  const [tradeDate, setTradeDate] = useState(new Date().toISOString().split('T')[0]);
+  const [tradeTime, setTradeTime] = useState("12:00");
   const [status, setStatus] = useState("win");
-  const [tradeDate, setTradeDate] = useState(""); 
-  const [tradeTime, setTradeTime] = useState("");
-  
-  // Financial Inputs
   const [entryPrice, setEntryPrice] = useState("");
-  const [stopLoss, setStopLoss] = useState(""); // Now Optional
-  const [takeProfit, setTakeProfit] = useState(""); // Now Optional
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
   const [lotSize, setLotSize] = useState("");
   const [pnl, setPnl] = useState("");
-  
-  // Qualitative Inputs
   const [lesson, setLesson] = useState("");
   const [mistake, setMistake] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // Evidence Files
-  const [ltfFile, setLtfFile] = useState<File | null>(null);
+  const [setupType, setSetupType] = useState("");
+  const [session, setSession] = useState("London");
+  
   const [ltfUrl, setLtfUrl] = useState("");
-  const [mtfFile, setMtfFile] = useState<File | null>(null);
   const [mtfUrl, setMtfUrl] = useState("");
-  const [htfFile, setHtfFile] = useState<File | null>(null);
   const [htfUrl, setHtfUrl] = useState("");
+  const [ltfFile, setLtfFile] = useState<File | null>(null);
+  const [mtfFile, setMtfFile] = useState<File | null>(null);
+  const [htfFile, setHtfFile] = useState<File | null>(null);
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (editingTrade) {
-      setAsset(editingTrade.asset || "");
-      setDirection(editingTrade.direction || "BUY");
-      setStatus(editingTrade.status || "win");
+      setAsset(editingTrade.asset);
+      setDirection(editingTrade.direction);
+      setStatus(editingTrade.status);
       setEntryPrice(editingTrade.entry_price?.toString() || "");
       setStopLoss(editingTrade.stop_loss?.toString() || "");
       setTakeProfit(editingTrade.take_profit?.toString() || "");
       setLotSize(editingTrade.lot_size?.toString() || "");
       
-      let basePnl = editingTrade.pnl || 0;
-      if (isZar) basePnl = basePnl * usdZarRate;
-      setPnl(basePnl.toFixed(2));
+      let displayPnl = editingTrade.pnl;
+      if (isZar) displayPnl = displayPnl * usdZarRate;
+      setPnl(Math.abs(displayPnl).toString());
       
       setLesson(editingTrade.lesson || "");
       setMistake(editingTrade.mistake || "");
+      setSetupType(editingTrade.setup_type || "");
+      setSession(editingTrade.session || "London");
       
-      // Separate Date and Time from the ISO string
-      const dateObj = new Date(editingTrade.trade_date);
-      setTradeDate(dateObj.toISOString().split('T')[0]);
-      setTradeTime(dateObj.toTimeString().substring(0, 5));
+      const dt = new Date(editingTrade.trade_date);
+      setTradeDate(dt.toISOString().split('T')[0]);
+      setTradeTime(dt.toTimeString().split(' ')[0].substring(0, 5));
       
       setLtfUrl(editingTrade.image_ltf || "");
       setMtfUrl(editingTrade.image_mtf || "");
       setHtfUrl(editingTrade.image_htf || "");
-      setIsTradeModalOpen(true);
-    } else if (isTradeModalOpen) {
-      // Default to current South African time
-      const now = new Date();
-      setTradeDate(now.toISOString().split('T')[0]); 
-      setTradeTime(now.toTimeString().substring(0, 5));
+    } else {
+      resetForm();
     }
-  }, [editingTrade, isTradeModalOpen]);
+  }, [editingTrade, isTradeModalOpen, isZar, usdZarRate]);
 
-  const uploadImageObj = async (file: File) => {
-    const fileName = `${user?.id}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
-    const { data, error } = await supabase.storage.from('trade_images').upload(fileName, file);
-    if (error) return null;
-    const { data: { publicUrl } } = supabase.storage.from('trade_images').getPublicUrl(fileName);
+  const resetForm = () => {
+    setAsset("EURUSD");
+    setDirection("BUY");
+    setStatus("win");
+    setEntryPrice("");
+    setStopLoss("");
+    setTakeProfit("");
+    setLotSize("");
+    setPnl("");
+    setLesson("");
+    setMistake("");
+    setSetupType("");
+    setSession("London");
+    setTradeDate(new Date().toISOString().split('T')[0]);
+    setTradeTime(new Date().toTimeString().split(' ')[0].substring(0, 5));
+    setLtfUrl(""); setMtfUrl(""); setHtfUrl("");
+    setLtfFile(null); setMtfFile(null); setHtfFile(null);
+  };
+
+  const uploadImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const { data, error } = await supabase.storage.from('trade-images').upload(fileName, file);
+    if (error) throw error;
+    const { data: { publicUrl } } = supabase.storage.from('trade-images').getPublicUrl(data.path);
     return publicUrl;
   };
 
@@ -83,57 +100,45 @@ export default function LogTradeModal() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      let finalLtf = ltfUrl, finalMtf = mtfUrl, finalHtf = htfUrl;
+      if (ltfFile) finalLtf = await uploadImage(ltfFile);
+      if (mtfFile) finalMtf = await uploadImage(mtfFile);
+      if (htfFile) finalHtf = await uploadImage(htfFile);
 
-      let ltf_url = ltfUrl;
-      let mtf_url = mtfUrl;
-      let htf_url = htfUrl;
-
-      // Handle image uploads only if a new file was selected
-      if (ltfFile) ltf_url = await uploadImage(ltfFile, "ltf") || "";
-      if (mtfFile) mtf_url = await uploadImage(mtfFile, "mtf") || "";
-      if (htfFile) htf_url = await uploadImage(htfFile, "htf") || "";
-
-      let finalPnl = pnl ? parseFloat(pnl) : 0;
-      if (isZar) finalPnl = finalPnl / usdZarRate;
-      if (status === 'loss') finalPnl = -Math.abs(finalPnl);
+      let rawPnl = pnl ? parseFloat(pnl) : 0;
+      if (isZar) rawPnl = rawPnl / usdZarRate;
+      if (status === 'loss') rawPnl = -Math.abs(rawPnl);
 
       const tradeData = {
         user_id: user.id,
         asset,
         direction,
-        entry_price: parseFloat(entryPrice) || 0,
+        status,
+        entry_price: entryPrice ? parseFloat(entryPrice) : null,
         stop_loss: stopLoss ? parseFloat(stopLoss) : null,
         take_profit: takeProfit ? parseFloat(takeProfit) : null,
-        lot_size: parseFloat(lotSize) || 0,
-        pnl: finalPnl,
-        status,
+        lot_size: lotSize ? parseFloat(lotSize) : null,
+        pnl: rawPnl,
         trade_date: `${tradeDate}T${tradeTime}:00Z`,
-        image_ltf: ltf_url,
-        image_mtf: mtf_url,
-        image_htf: htf_url,
+        image_ltf: finalLtf,
+        image_mtf: finalMtf,
+        image_htf: finalHtf,
         lesson,
-        mistake
+        mistake,
+        session,
+        setup_type: setupType
       };
 
-      if (editingTrade) {
-        const { error } = await supabase
-          .from('trades')
-          .update(tradeData)
-          .eq('id', editingTrade.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('trades')
-          .insert([tradeData]);
-        if (error) throw error;
-      }
+      const { error } = editingTrade 
+        ? await supabase.from('trades').update(tradeData).eq('id', editingTrade.id)
+        : await supabase.from('trades').insert([tradeData]);
 
+      if (error) throw error;
+      
       await fetchTrades();
       handleClose();
-    } catch (error: any) {
-      alert(`Database error: ${error.message}`);
+    } catch (err: any) {
+      alert("Error: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -142,154 +147,143 @@ export default function LogTradeModal() {
   const handleClose = () => {
     setIsTradeModalOpen(false);
     setEditingTrade(null);
-    // Reset image states for fresh log
-    setLtfFile(null); setMtfFile(null); setHtfFile(null);
   };
 
   if (!isTradeModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-md">
-      <div className="w-full max-w-lg bg-[#050505] rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-white/10 flex flex-col max-h-[92vh] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-500">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose}></div>
+      <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         
-        {/* Header */}
-        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/50">
-          <h2 className="text-white font-black tracking-widest uppercase text-xs">Log in trade details</h2>
-          <button onClick={handleClose} className="p-2 bg-white/5 rounded-full text-zinc-400 hover:text-white transition"><X size={20} /></button>
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-emerald-500/10 to-transparent">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">
+              {editingTrade ? "Edit Execution" : "Log New Trade"}
+            </h2>
+            <p className="text-[10px] text-emerald-500 font-bold tracking-[0.3em] uppercase">God First †</p>
+          </div>
+          <button onClick={handleClose} className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 transition"><X size={20}/></button>
         </div>
 
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-40">
-          <form id="main-trade-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
-            
-            {/* Row 1: Asset & Direction */}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Asset</label>
-                  <input type="text" value={asset} onChange={e => setAsset(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[var(--dondo-emerald)] transition" placeholder="e.g. US30" required />
-               </div>
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Direction</label>
-                  <div className="flex gap-2 h-[56px]">
-                    <button type="button" onClick={() => setDirection('BUY')} className={`flex-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${direction === 'BUY' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]' : 'bg-white/5 text-zinc-500'}`}>Buy</button>
-                    <button type="button" onClick={() => setDirection('SELL')} className={`flex-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${direction === 'SELL' ? 'bg-orange-600 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'bg-white/5 text-zinc-500'}`}>Sell</button>
-                  </div>
-               </div>
-            </div>
-
-            {/* Row 2: Date & Time */}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="flex flex-col gap-2 relative">
-                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Trade Date</label>
-                  <input type="date" value={tradeDate} onChange={e => setTradeDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none [color-scheme:dark] focus:border-[var(--dondo-emerald)]" required />
-               </div>
-               <div className="flex flex-col gap-2 relative">
-                  <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Trade Time</label>
-                  <input type="time" value={tradeTime} onChange={e => setTradeTime(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none [color-scheme:dark] focus:border-[var(--dondo-emerald)]" required />
-               </div>
-            </div>
-
-            {/* Row 3: Result Toggle */}
+        <form onSubmit={handleSubmit} className="p-8 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+          
+          {/* Asset & Direction */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-                <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Trade Outcome</label>
-                <div className="flex gap-3 h-[60px]">
-                    <button type="button" onClick={() => setStatus('win')} className={`flex-1 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all ${status === 'win' ? 'bg-[var(--dondo-emerald)] text-black' : 'bg-white/5 text-zinc-600'}`}>WINNER</button>
-                    <button type="button" onClick={() => setStatus('loss')} className={`flex-1 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all ${status === 'loss' ? 'bg-red-600 text-white' : 'bg-white/5 text-zinc-600'}`}>LOSS</button>
-                </div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Asset</label>
+              <input 
+                value={asset} onChange={e => setAsset(e.target.value.toUpperCase())}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:border-emerald-500/50 outline-none transition"
+                placeholder="e.g. US30"
+              />
             </div>
-
-            {/* Row 4: Evidence Uploads */}
-            <div className="grid grid-cols-3 gap-3">
-              <ImageUploader label="LTF (Entry)" url={ltfUrl} setUrl={setLtfUrl} setFile={setLtfFile} />
-              <ImageUploader label="MTF (Context)" url={mtfUrl} setUrl={setMtfUrl} setFile={setMtfFile} />
-              <ImageUploader label="HTF (Bias)" url={htfUrl} setUrl={setHtfUrl} setFile={setHtfFile} />
-            </div>
-
-            {/* Row 5: Financial Coordinates */}
-            <div className="grid grid-cols-2 gap-4">
-               <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Entry Price</label>
-                 <input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-white/30" required />
-               </div>
-               <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Lot Size</label>
-                 <input type="number" step="any" value={lotSize} onChange={e => setLotSize(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-white/30" required />
-               </div>
-               <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-red-500/50 font-bold uppercase tracking-widest">Stop Loss (Optional)</label>
-                 <input type="number" step="any" value={stopLoss} onChange={e => setStopLoss(e.target.value)} className="bg-white/5 border border-red-500/20 rounded-xl p-4 text-red-400 outline-none focus:border-red-500/40" />
-               </div>
-               <div className="flex flex-col gap-1">
-                 <label className="text-[9px] text-[var(--dondo-emerald)]/50 font-bold uppercase tracking-widest">Take Profit (Optional)</label>
-                 <input type="number" step="any" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} className="bg-white/5 border border-[var(--dondo-emerald)]/20 rounded-xl p-4 text-[var(--dondo-emerald)] outline-none focus:border-[var(--dondo-emerald)]/40" />
-               </div>
-            </div>
-
-            {/* Row 6: PnL Display */}
             <div className="flex flex-col gap-2">
-               <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest text-center">Net Profit/Loss {isZar ? '(ZAR)' : '(USD)'}</label>
-               <input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} className="bg-black border-2 border-[var(--dondo-emerald)]/30 rounded-2xl p-6 text-4xl font-black text-white outline-none text-center shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]" required />
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Direction</label>
+              <div className="grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
+                <button type="button" onClick={() => setDirection("BUY")} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition ${direction === 'BUY' ? 'bg-blue-500 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}>BUY</button>
+                <button type="button" onClick={() => setDirection("SELL")} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition ${direction === 'SELL' ? 'bg-red-500 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}>SELL</button>
+              </div>
             </div>
+          </div>
 
-            {/* Row 7: Psychological Review */}
-            <div className="grid grid-cols-2 gap-4">
-               <textarea placeholder="Lessons Learned..." value={lesson} onChange={e => setLesson(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-28 resize-none outline-none focus:border-[var(--dondo-emerald)] transition" />
-               <textarea placeholder="Mistakes Made..." value={mistake} onChange={e => setMistake(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-white h-28 resize-none outline-none focus:border-red-500/50 transition" />
+          {/* Outcome Toggle */}
+          <div className="grid grid-cols-2 gap-4">
+             <button type="button" onClick={() => setStatus("win")} className={`py-6 rounded-3xl border-2 flex flex-col items-center gap-2 transition-all ${status === 'win' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : 'bg-white/5 border-transparent text-zinc-600 grayscale opacity-40 hover:opacity-100'}`}>
+                <CheckCircle2 size={32} />
+                <span className="text-xs font-black uppercase tracking-[0.2em]">Winner</span>
+             </button>
+             <button type="button" onClick={() => setStatus("loss")} className={`py-6 rounded-3xl border-2 flex flex-col items-center gap-2 transition-all ${status === 'loss' ? 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,44,44,0.2)]' : 'bg-white/5 border-transparent text-zinc-600 grayscale opacity-40 hover:opacity-100'}`}>
+                <X size={32} />
+                <span className="text-xs font-black uppercase tracking-[0.2em]">Loss</span>
+             </button>
+          </div>
+
+          {/* Images Section */}
+          <div className="grid grid-cols-3 gap-4">
+             <ImageUploader label="LTF (Entry)" url={ltfUrl} setUrl={setLtfUrl} setFile={setLtfFile} />
+             <ImageUploader label="MTF (Context)" url={mtfUrl} setUrl={setMtfUrl} setFile={setMtfFile} />
+             <ImageUploader label="HTF (Bias)" url={htfUrl} setUrl={setHtfUrl} setFile={setHtfFile} />
+          </div>
+
+          {/* Core Numbers */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Entry Price</label>
+               <input value={entryPrice} onChange={e => setEntryPrice(e.target.value)} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none" />
             </div>
-          </form>
-        </div>
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Lot Size</label>
+               <input value={lotSize} onChange={e => setLotSize(e.target.value)} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none" />
+            </div>
+          </div>
 
-        {/* FIXED FOOTER BUTTON */}
-        <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/95 to-transparent z-[70]">
-          <button form="main-trade-form" type="submit" disabled={loading} className="w-full py-5 bg-[var(--dondo-emerald)] text-black font-black uppercase tracking-[0.25em] text-[11px] rounded-2xl shadow-[0_0_40px_rgba(16,185,129,0.3)] active:scale-95 transition-all disabled:opacity-50">
-            {loading ? "INITIALIZING SECURE UPLOAD..." : editingTrade ? "UPDATE TRADE SEQUENCE" : "COMMIT TO DATABASE"}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-red-500/50 ml-2">Stop Loss (Optional)</label>
+               <input value={stopLoss} onChange={e => setStopLoss(e.target.value)} type="number" step="any" className="w-full bg-white/5 border border-red-500/10 rounded-2xl p-4 text-white outline-none" />
+            </div>
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500/50 ml-2">Take Profit (Optional)</label>
+               <input value={takeProfit} onChange={e => setTakeProfit(e.target.value)} type="number" step="any" className="w-full bg-white/5 border border-emerald-500/10 rounded-2xl p-4 text-white outline-none" />
+            </div>
+          </div>
+
+          {/* PnL Display Big */}
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-8 flex flex-col items-center gap-2">
+             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500/60">Net Profit/Loss ({isZar ? 'ZAR' : 'USD'})</label>
+             <input 
+               value={pnl} onChange={e => setPnl(e.target.value)} type="number" step="any"
+               className="bg-transparent text-white text-6xl font-black text-center outline-none w-full tracking-tighter" 
+               placeholder="0.00"
+             />
+          </div>
+
+          {/* Meta Data */}
+          <div className="grid grid-cols-2 gap-4">
+             <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Session</label>
+                <select value={session} onChange={e => setSession(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none">
+                   <option value="London">London</option>
+                   <option value="New York">New York</option>
+                   <option value="Asia">Asia</option>
+                </select>
+             </div>
+             <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-2">Setup Type</label>
+                <input value={setupType} onChange={e => setSetupType(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none" placeholder="e.g. Trend Continuation" />
+             </div>
+          </div>
+
+          <button 
+            type="submit" disabled={loading}
+            className="w-full py-6 bg-emerald-500 rounded-3xl text-black font-black uppercase tracking-[0.3em] text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_40px_rgba(16,185,129,0.3)] disabled:opacity-50"
+          >
+            {loading ? "Initializing Secure Upload..." : (editingTrade ? "Update Execution" : "Secure Journal Entry")}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
 }
 
-interface ImageUploaderProps {
-  label: string;
-  url: string;
-  setUrl: (url: string) => void;
-  setFile: (file: File | null) => void;
-}
-
-const ImageUploader = ({ label, url, setUrl, setFile }: ImageUploaderProps) => {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setUrl(URL.createObjectURL(e.target.files[0]));
-    }
-  };
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFile(null);
-    setUrl("");
-  };
-
+const ImageUploader = ({ label, url, setUrl, setFile }: { label: string, url: string, setUrl: (v: string) => void, setFile: (f: File | null) => void }) => {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{label}</label>
-      <div className="relative group">
-        <label className="relative w-full h-16 rounded-xl bg-white/5 border border-white/10 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition hover:bg-white/[0.08]">
-          {url ? <img src={url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-zinc-600" />}
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-        </label>
-        
-        {url && (
-          <button 
-            onClick={handleRemove}
-            type="button"
-            className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center justify-center transition-transform hover:scale-110 active:scale-90 z-20 border-2 border-black"
-          >
-            <X size={14} strokeWidth={4} />
-          </button>
+    <div className="flex flex-col gap-2">
+      <label className="text-[8px] font-black uppercase tracking-widest text-zinc-600 text-center">{label}</label>
+      <div className="relative group aspect-video rounded-xl overflow-hidden bg-white/5 border border-white/5 flex items-center justify-center cursor-pointer hover:border-emerald-500/30 transition">
+        {url ? (
+          <>
+            <img src={url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition" />
+            <button type="button" onClick={() => { setUrl(""); setFile(null); }} className="absolute top-2 right-2 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition"><X size={12}/></button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-1 text-zinc-700 group-hover:text-emerald-500 transition">
+            <PlusCircle size={20} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Upload</span>
+          </div>
         )}
+        <input type="file" onChange={e => e.target.files && setFile(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
       </div>
     </div>
   );
