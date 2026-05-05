@@ -17,5 +17,13 @@ const getValidUrl = (url?: string) => {
 const finalUrl = getValidUrl(supabaseUrl);
 const finalKey = supabaseAnonKey || 'placeholder';
 
+// Safe debug logging for the browser console
+if (typeof window !== 'undefined') {
+  const isPlaceholder = finalUrl.includes('placeholder');
+  const projectId = !isPlaceholder ? finalUrl.split('//')[1]?.split('.')[0] : 'PLACEHOLDER';
+  console.log(`%c[Supabase] Connecting to project: ${projectId}`, `color: ${isPlaceholder ? '#ff4b4b' : '#10b981'}; font-weight: bold;`);
+}
+
 export const supabase = createClient(finalUrl, finalKey);
+
 
